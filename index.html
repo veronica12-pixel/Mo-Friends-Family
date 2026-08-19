@@ -1328,14 +1328,17 @@
       }
     };
 
-    return rootRef;
+    return { rootRef, CLIENT_ID };
   }
 
   let syncMode = 'unknown';
   let diagnosticRootRef = null;
+  let diagnosticClientId = null;
   if (typeof firebase !== 'undefined') {
     try{
-      diagnosticRootRef = installFirebaseStorage();
+      const installed = installFirebaseStorage();
+      diagnosticRootRef = installed.rootRef;
+      diagnosticClientId = installed.CLIENT_ID;
       syncMode = 'firebase';
     }catch(e){
       console.warn('Firebase setup failed, falling back:', e);
@@ -2271,12 +2274,24 @@ const STATE_PATHS = {
 
     // We claim to be using Firebase — actually prove it with a real write
     // and read against the same path the pins themselves use.
+    //
+    // IMPORTANT: this write must be tagged with __lastWriter = our own
+    // CLIENT_ID, exactly like the real pins save does. Without that tag,
+    // the "did something change remotely?" listener sees this test write,
+    // doesn't recognize it as our own, and triggers an automatic reload —
+    // which re-runs this very test on every load, causing an infinite
+    // reload loop on every open device. (This is exactly what happened
+    // before this fix — lesson learned.)
     const testKey = '__synctest__';
     const testVal = { t: Date.now(), from: Math.random().toString(36).slice(2) };
-    diagnosticRootRef.child(testKey).set(testVal)
+    const updates = {};
+    updates[testKey] = testVal;
+    updates['__lastWriter'] = diagnosticClientId;
+    diagnosticRootRef.update(updates)
       .then(()=> diagnosticRootRef.child(testKey).once('value'))
       .then((snap)=>{
         render(snap.val() ? 'firebase' : 'firebase-denied');
+        diagnosticRootRef.child(testKey).remove().catch(()=>{}); // tidy up, best-effort
       })
       .catch((e)=>{
         console.warn('Firebase permission test failed — likely a security-rules issue for this path:', e);
