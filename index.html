@@ -144,36 +144,6 @@
     stroke-width:1;
     vector-effect:non-scaling-stroke;
   }
-  .pin-count-chip{
-    position:absolute;
-    top:12px;
-    left:12px;
-    background:rgba(18,60,77,0.85);
-    color:var(--paper);
-    font-size:12px;
-    font-weight:600;
-    padding:6px 10px;
-    border-radius:999px;
-    backdrop-filter: blur(2px);
-  }
-  .refresh-btn{
-    position:absolute;
-    top:12px;
-    right:12px;
-    background:rgba(255,255,255,0.9);
-    border:none;
-    color:var(--ink);
-    font-size:12px;
-    font-weight:600;
-    padding:6px 10px;
-    border-radius:999px;
-    cursor:pointer;
-    display:flex;
-    align-items:center;
-    gap:5px;
-  }
-  .refresh-btn:active{ transform: scale(0.96); }
-  .refresh-btn svg{ width:12px; height:12px; }
 
   .zoom-controls{
     position:absolute;
@@ -599,11 +569,6 @@
   <div class="layout">
     <div class="card map-card">
       <div class="map-wrap">
-        <span class="pin-count-chip" id="chip-count">0 pins</span>
-        <button class="refresh-btn" id="refresh-btn" title="Check for new pins">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v6h-6"/></svg>
-          Refresh
-        </button>
         <svg id="map" viewBox="0 0 960 600" preserveAspectRatio="xMidYMid meet">
           <g id="zoom-group">
             <g id="chart-bg" aria-hidden="true" pointer-events="none">
@@ -1329,9 +1294,7 @@
   const factModal = document.getElementById('fact-modal');
   const peopleList = document.getElementById('people-list');
   const listCount = document.getElementById('list-count');
-  const chipCount = document.getElementById('chip-count');
   const heroCount = document.getElementById('hero-count');
-  const refreshBtn = document.getElementById('refresh-btn');
   const zoomInBtn = document.getElementById('zoom-in-btn');
   const zoomOutBtn = document.getElementById('zoom-out-btn');
   const zoomGroup = document.getElementById('zoom-group');
@@ -1953,7 +1916,6 @@ const STATE_PATHS = {
       }
     });
 
-    chipCount.textContent = pins.length + (pins.length===1 ? ' pin' : ' pins');
     heroCount.textContent = pins.length;
     listCount.textContent = pins.length + (pins.length===1 ? ' person' : ' people');
     renderList();
@@ -2178,16 +2140,6 @@ const STATE_PATHS = {
   // instead of only redrawing the map's internal SVG content at a bigger
   // size while the surrounding page stayed fixed. The +/- buttons above
   // still provide a dedicated way to zoom just the map itself.
-
-  refreshBtn.addEventListener('click', async ()=>{
-    refreshBtn.disabled = true;
-    const latest = await loadPinsOrKeep();
-    if(latest.ok){
-      pins = latest.data;
-      renderPins();
-    }
-    refreshBtn.disabled = false;
-  });
 
   // periodic light polling so the group sees new pins without reloading
   setInterval(async ()=>{
