@@ -1020,7 +1020,17 @@
     // is the correct (larger) height. Calling invalidateSize() tells
     // Leaflet to re-measure and re-render at the correct size. We do this
     // proactively at a few likely trigger points rather than just once.
-    function syncMapSize(){ if(map) map.invalidateSize(); }
+    //
+    // IMPORTANT: pan:false. By default invalidateSize() also tries to
+    // shift the map to compensate for the size change, by comparing the
+    // container's size right now against whatever size it measured at
+    // L.map() creation time. If that very first measurement happened
+    // before layout had settled (container still 0×0 for an instant),
+    // that comparison is comparing against garbage — and "compensating"
+    // for a bogus size difference is exactly what was throwing the view
+    // off to a random spot on the globe. pan:false keeps this purely a
+    // "resize the tile grid," never a "move the map" operation.
+    function syncMapSize(){ if(map) map.invalidateSize({ pan: false, animate: false }); }
     requestAnimationFrame(syncMapSize);
     setTimeout(syncMapSize, 250);
     setTimeout(syncMapSize, 800);
