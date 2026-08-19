@@ -394,7 +394,7 @@
     padding:9px 6px;
     border-radius:8px;
     cursor:pointer;
-    font-size:14px;
+    font-size:17px;
   }
   #people-list li:hover{ background:#F6F1E4; }
   #people-list li .dot{
@@ -412,7 +412,7 @@
     display:block;
   }
   #people-list li .name{ font-weight:600; }
-  #people-list li .loc{ color:var(--ink-soft); font-size:12.5px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #people-list li .loc{ color:var(--ink-soft); font-size:15px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .empty-list{ color:var(--ink-soft); font-size:13px; font-style:italic; padding:8px 6px; }
 
   .list-actions{
@@ -776,7 +776,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-5</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-10</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -890,6 +890,7 @@
           const value = snap.val();
           if(value !== null && value !== undefined){
             localSet(key, value); // keep the local copy in sync with the cloud
+            window.__lastFetchSource = 'cloud';
             return { key, value, shared: false };
           }
         }catch(e){
@@ -897,6 +898,7 @@
         }
         // Cloud had nothing (or wasn't reachable) — fall back to whatever is
         // saved on this device.
+        window.__lastFetchSource = local === null ? 'cloud-empty' : 'local-fallback';
         return local === null ? null : { key, value: local, shared: false };
       },
       async set(key, value){
@@ -961,6 +963,7 @@
   const pinCountCorner = document.getElementById('pin-count-corner-num');
 
   let pins = [];
+  let fitMapToPins = null; // set inside initMap(); called from renderPins() whenever pin data changes
   let mapReady = false;
   let map = null;          // the Leaflet map instance
   let pinsLayer = null;    // L.layerGroup holding all pin markers
@@ -991,16 +994,17 @@
       scrollWheelZoom: true,
       doubleClickZoom: true,
       dragging: true,
-      tap: false, // legacy touch shim removed — it was firing a phantom
-                  // double-tap on modern mobile browsers, which the OS
-                  // read as "zoom in" and enlarged the whole page a
-                  // moment after load
-      maxBounds: VIEW_FRAME.pad(0.15),  // hard panning limit — can't drag
-                                         // past the US into Mexico/Central/
-                                         // South America or open ocean
-      maxBoundsViscosity: 1.0           // makes that limit feel like a
-                                         // solid wall instead of a soft
-                                         // rubber-band
+      tap: false // legacy touch shim removed — it was firing a phantom
+                 // double-tap on modern mobile browsers, which the OS
+                 // read as "zoom in" and enlarged the whole page a
+                 // moment after load
+      // NOTE: maxBounds is deliberately NOT set here. Like fitBounds,
+      // enforcing maxBounds requires converting the lat/lng frame into
+      // on-screen pixels — which needs an accurate container size. Doing
+      // that at this exact instant hits the same stale-measurement race
+      // described below and was snapping the view to the wrong corner of
+      // the frame (showing Alaska instead of the continental US). It's
+      // applied later instead, once the container size is confirmed.
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1039,11 +1043,49 @@
     // off to a random spot on the globe. pan:false keeps this purely a
     // "resize the tile grid," never a "move the map" operation.
     function syncMapSize(){ if(map) map.invalidateSize({ pan: false, animate: false }); }
-    requestAnimationFrame(syncMapSize);
-    setTimeout(syncMapSize, 250);
-    setTimeout(syncMapSize, 800);
+
+    // Fit the default view to wherever the actual pins are (not a
+    // hardcoded region) — but this needs the container's real on-screen
+    // pixel size to calculate correctly, and that size can still be
+    // unsettled for a moment on mobile (web fonts loading in, layout
+    // reflow). Calling it too early was the cause of every wrong-zoom bug
+    // so far. So: re-run this at every settle checkpoint below AND every
+    // time fresh pin data arrives, but stop for good once either (a) the
+    // person touches the map themselves, or (b) it's successfully fit to
+    // real pin data once. Without (b), a background sync bringing in a new
+    // pin from someone else's device later would re-trigger this and make
+    // the view feel like it was jumping around on its own — exactly the
+    // drifting behavior this app used to have and was fixed for once
+    // already.
+    let userInteracted = false;
+    let hasFittedRealPins = false;
+    let isProgrammaticMove = false;
+    map.on('movestart zoomstart', ()=>{
+      dragHint.classList.add('hidden');
+      if(!isProgrammaticMove) userInteracted = true;
+    });
+    function fitToPins(){
+      if(!map || userInteracted || hasFittedRealPins) return;
+      const latlngs = pins
+        .filter(p=> typeof p.lat === 'number' && typeof p.lon === 'number')
+        .map(p=> [p.lat, p.lon]);
+      isProgrammaticMove = true;
+      if(latlngs.length){
+        map.fitBounds(L.latLngBounds(latlngs), { padding:[40,40], animate:false });
+        hasFittedRealPins = true; // done for good — no more auto-refitting
+      } else {
+        map.setView(US_CENTER, US_DEFAULT_ZOOM, { animate:false });
+        // no pins yet — leave hasFittedRealPins false so this runs again
+        // once the first real pin actually arrives
+      }
+      isProgrammaticMove = false;
+    }
+    fitMapToPins = fitToPins;
+    requestAnimationFrame(()=>{ syncMapSize(); fitToPins(); });
+    setTimeout(()=>{ syncMapSize(); fitToPins(); }, 250);
+    setTimeout(()=>{ syncMapSize(); fitToPins(); }, 800);
     if(document.fonts && document.fonts.ready){
-      document.fonts.ready.then(syncMapSize);
+      document.fonts.ready.then(()=>{ syncMapSize(); fitToPins(); });
     }
     window.addEventListener('resize', syncMapSize);
     window.addEventListener('orientationchange', ()=> setTimeout(syncMapSize, 300));
@@ -1619,6 +1661,7 @@
     if(pinCountCorner) pinCountCorner.textContent = pins.length;
     listCount.textContent = pins.length + (pins.length===1 ? ' person' : ' people');
     renderList();
+    if(fitMapToPins) fitMapToPins();
   }
 
   // ---------- Manual pin fine-tuning (drag to adjust) ----------
@@ -2061,6 +2104,10 @@
     initMap();
     pins = await loadPins();
     renderPins();
+    const stamp = document.getElementById('debug-stamp');
+    if(stamp){
+      stamp.textContent += ` — ${pins.length} pins — source: ${window.__lastFetchSource || 'n/a'} — sync: ${syncMode}`;
+    }
   })();
 })();
 </script>
