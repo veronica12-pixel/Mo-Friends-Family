@@ -122,6 +122,52 @@
     margin-inline:auto;
   }
 
+  .welcome-banner{
+    position:fixed;
+    top:16px;
+    left:50%;
+    transform:translate(-50%, -140%);
+    z-index:2000;
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    background:linear-gradient(135deg, var(--gold) 0%, var(--pin) 100%);
+    color:var(--ink);
+    padding:14px 44px 14px 18px;
+    border-radius:16px;
+    box-shadow:0 14px 32px rgba(4,20,26,0.45);
+    max-width:min(92vw, 460px);
+    transition:transform .5s cubic-bezier(.34,1.4,.4,1);
+  }
+  .welcome-banner.visible{
+    transform:translate(-50%, 0);
+  }
+  .welcome-banner-emoji{ font-size:26px; line-height:1; flex-shrink:0; }
+  .welcome-banner-text{
+    display:flex;
+    flex-direction:column;
+    line-height:1.3;
+    font-size:13.5px;
+  }
+  .welcome-banner-text strong{
+    font-family:'Baloo 2', sans-serif;
+    font-size:16px;
+  }
+  .welcome-banner-close{
+    position:absolute;
+    top:6px;
+    right:8px;
+    background:none;
+    border:none;
+    font-size:20px;
+    line-height:1;
+    color:var(--ink);
+    opacity:.6;
+    cursor:pointer;
+    padding:4px 8px;
+  }
+  .welcome-banner-close:hover{ opacity:1; }
+
   .layout{
     display:grid;
     grid-template-columns: 1fr;
@@ -132,6 +178,10 @@
     .layout{
       grid-template-columns: 1fr 360px;
       align-items:start;
+    }
+    .map-card{
+      width:90%;
+      justify-self:center;
     }
   }
 
@@ -145,8 +195,6 @@
 
   .map-card{
     position:relative;
-    width:90%;
-    justify-self:center;
   }
   .map-wrap{
     position:relative;
@@ -572,6 +620,29 @@
   @media(max-width: 859px){
     #people-list{ max-height:240px; }
 
+    .welcome-banner{
+      top:10px;
+      max-width:94vw;
+      padding:10px 34px 10px 12px;
+      gap:8px;
+      border-radius:14px;
+    }
+    .welcome-banner-emoji{ font-size:20px; }
+    .welcome-banner-text{ font-size:11.5px; }
+    .welcome-banner-text strong{ font-size:13.5px; }
+    .welcome-banner-close{
+      top:2px;
+      right:4px;
+      font-size:17px;
+      padding:4px 6px;
+    }
+
+    header p{
+      white-space:normal;
+      max-width:92%;
+      padding-inline:4px;
+    }
+
     /* Bigger, easier-to-tap touch targets — the main thing that makes a
        page feel "hard to maneuver" on a phone is controls sized for a mouse
        cursor instead of a fingertip. */
@@ -627,6 +698,14 @@
 </style>
 </head>
 <body>
+<div class="welcome-banner" id="welcome-banner">
+  <span class="welcome-banner-emoji">🎉</span>
+  <span class="welcome-banner-text">
+    <strong>Welcome to Mo's Friends and Family Group!</strong>
+    <span id="welcome-banner-sub"></span>
+  </span>
+  <button type="button" class="welcome-banner-close" id="welcome-banner-close" aria-label="Dismiss">&times;</button>
+</div>
 <div id="app">
   <header>
     <svg id="header-chart" class="header-chart-svg" aria-hidden="true" preserveAspectRatio="none"></svg>
@@ -879,6 +958,9 @@
   const submitBtn = document.getElementById('submit-btn');
   const statusMsg = document.getElementById('status-msg');
   const tooltipPanel = document.getElementById('tooltip-panel');
+  const welcomeBanner = document.getElementById('welcome-banner');
+  const welcomeBannerSub = document.getElementById('welcome-banner-sub');
+  const welcomeBannerClose = document.getElementById('welcome-banner-close');
   const dragHint = document.getElementById('drag-hint');
   const factModal = document.getElementById('fact-modal');
   const peopleList = document.getElementById('people-list');
@@ -900,6 +982,7 @@
   // that math internally.
   const US_CENTER = [39.8283, -98.5795];
   const US_DEFAULT_ZOOM = 4;
+  const FOCUS_ZOOM = 11; // zoom level used when jumping to a specific person's pin
 
   function initMap(){
     map = L.map('map', {
@@ -1484,7 +1567,10 @@
         `${escapeHtml(p.name)}<span class="sub">${escapeHtml(placeText(p))}</span>`,
         { className: 'custom-pin-tooltip', direction: 'top', offset: [0, -34], sticky: true }
       );
-      marker.on('click', ()=> showTooltip(p, marker));
+      marker.on('click', ()=>{
+        showTooltip(p, marker);
+        map.flyTo(marker.getLatLng(), Math.max(map.getZoom(), FOCUS_ZOOM), { duration: 1 });
+      });
       marker.on('dragstart', ()=> marker.closeTooltip());
       marker.on('dragend', ()=> savePinPosition(p, marker));
       marker.addTo(pinsLayer);
@@ -1602,7 +1688,7 @@
       li.addEventListener('click', ()=>{
         const marker = markersById[p.id];
         showTooltip(p, marker);
-        if(marker) map.panTo(marker.getLatLng());
+        if(marker) map.flyTo(marker.getLatLng(), FOCUS_ZOOM, { duration: 1 });
       });
       peopleList.appendChild(li);
     });
@@ -1616,6 +1702,22 @@
     statusMsg.textContent = msg || '';
     statusMsg.className = 'status-msg' + (type ? ' '+type : '');
   }
+
+  // ---------- Welcome banner (shown when someone new joins the map) ----------
+  let welcomeBannerTimer = null;
+  function showWelcomeBanner(name){
+    welcomeBannerSub.textContent = name ? `So glad you're here, ${name}!` : `So glad you're here!`;
+    welcomeBanner.classList.add('visible');
+    clearTimeout(welcomeBannerTimer);
+    welcomeBannerTimer = setTimeout(hideWelcomeBanner, 6000);
+  }
+  function hideWelcomeBanner(){
+    welcomeBanner.classList.remove('visible');
+  }
+  welcomeBannerClose.addEventListener('click', ()=>{
+    clearTimeout(welcomeBannerTimer);
+    hideWelcomeBanner();
+  });
 
   // ---------- Edit / delete ----------
   let editingId = null;
@@ -1726,6 +1828,7 @@
       const verb = wasEditing ? 'Updated!' : 'Pinned!';
       if(saved){
         setStatus(`${verb} ${placeLabel} 🎉`, 'success');
+        if(!wasEditing) showWelcomeBanner(activePin.name);
       } else {
         setStatus(`Saved locally (${placeLabel}) — but couldn't sync to the group map. Try Refresh in a moment.`, 'error');
       }
