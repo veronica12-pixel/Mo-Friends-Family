@@ -776,7 +776,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-3</div>
+    <div style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-4</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -976,6 +976,13 @@
   const US_DEFAULT_ZOOM = 4;
   const FOCUS_ZOOM = 11; // zoom level used when jumping to a specific person's pin
 
+  // Fixed viewing frame: roughly southern Canada down to the US/Mexico
+  // border, coast to coast. The map is locked to this region so it always
+  // shows just the US — never Mexico, Central America, South America, or
+  // open ocean past the coastlines — regardless of where individual pins
+  // happen to fall.
+  const VIEW_FRAME = L.latLngBounds([[50.5, -127], [24.5, -66.5]]);
+
   function initMap(){
     map = L.map('map', {
       center: US_CENTER,
@@ -984,10 +991,16 @@
       scrollWheelZoom: true,
       doubleClickZoom: true,
       dragging: true,
-      tap: false // legacy touch shim removed — it was firing a phantom
-                 // double-tap on modern mobile browsers, which the OS
-                 // read as "zoom in" and enlarged the whole page a
-                 // moment after load
+      tap: false, // legacy touch shim removed — it was firing a phantom
+                  // double-tap on modern mobile browsers, which the OS
+                  // read as "zoom in" and enlarged the whole page a
+                  // moment after load
+      maxBounds: VIEW_FRAME.pad(0.15),  // hard panning limit — can't drag
+                                         // past the US into Mexico/Central/
+                                         // South America or open ocean
+      maxBoundsViscosity: 1.0           // makes that limit feel like a
+                                         // solid wall instead of a soft
+                                         // rubber-band
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1609,18 +1622,14 @@
     listCount.textContent = pins.length + (pins.length===1 ? ' person' : ' people');
     renderList();
 
-    // Auto-fit the view to everyone's pins, but only the FIRST time pins
-    // actually load — never again after that. Refitting on every background
-    // sync (new pins arriving from other devices) is exactly what used to
-    // make the view feel like it was "jumping" or drifting on its own.
-    if(!hasSetInitialView && pins.length){
+    // Set the initial view once, to the fixed US frame — not to wherever
+    // the pins happen to be. Fitting to pin locations was what made the
+    // view unpredictable (a single far-away pin could zoom the whole map
+    // out to a barely-readable world view). This always shows the same,
+    // stable region.
+    if(!hasSetInitialView){
       hasSetInitialView = true;
-      const latlngs = pins
-        .filter(p=> typeof p.lat === 'number' && typeof p.lon === 'number')
-        .map(p=> [p.lat, p.lon]);
-      if(latlngs.length){
-        map.fitBounds(L.latLngBounds(latlngs), { padding:[40,40], maxZoom: 6 });
-      }
+      map.fitBounds(VIEW_FRAME);
     }
   }
 
