@@ -776,7 +776,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-10</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-12</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -1064,10 +1064,21 @@
       dragHint.classList.add('hidden');
       if(!isProgrammaticMove) userInteracted = true;
     });
+    // North America sanity box, used ONLY to decide which pins are
+    // trustworthy enough to steer the default zoom/pan — generous enough
+    // to cover Alaska, Hawaii, and all of Canada and Mexico. A pin outside
+    // this (almost always a bad ZIP→coordinates geocode, not a real
+    // location) gets excluded from that calculation so it can't blow the
+    // default view out to a whole-world zoom. It still renders as a
+    // regular marker either way — this only affects the initial framing.
+    const SANE_FIT_REGION = L.latLngBounds([[14, -172], [72, -50]]);
+    window.__saneFitRegion = SANE_FIT_REGION; // for the on-page debug stamp only
+
     function fitToPins(){
       if(!map || userInteracted || hasFittedRealPins) return;
       const latlngs = pins
         .filter(p=> typeof p.lat === 'number' && typeof p.lon === 'number')
+        .filter(p=> SANE_FIT_REGION.contains([p.lat, p.lon]))
         .map(p=> [p.lat, p.lon]);
       isProgrammaticMove = true;
       if(latlngs.length){
@@ -1478,6 +1489,25 @@
   }
 
 
+  // A live geocoder occasionally returns a match that's technically
+  // "successful" (HTTP 200, well-formed JSON) but geographically wrong —
+  // e.g. Nominatim's free-text search matching some unrelated place that
+  // happens to share a label, rather than actually failing outright. That
+  // slips straight through a normal try/catch since nothing throws. This
+  // is a real-world floor: reject anything outside a generous country
+  // bounding box so a bad match falls through to the next, more reliable
+  // source instead of being trusted.
+  const COUNTRY_SANE_BOUNDS = {
+    us: { latMin: 17, latMax: 72, lonMin: -180, lonMax: -65 },  // covers
+      // the mainland, Alaska, Hawaii, and Puerto Rico
+    ca: { latMin: 41, latMax: 84, lonMin: -141, lonMax: -52 }
+  };
+  function isSaneCoord(country, lat, lon){
+    const b = COUNTRY_SANE_BOUNDS[country];
+    if(!b || typeof lat !== 'number' || typeof lon !== 'number' || isNaN(lat) || isNaN(lon)) return false;
+    return lat >= b.latMin && lat <= b.latMax && lon >= b.lonMin && lon <= b.lonMax;
+  }
+
   async function geocodeLocation(parsed){
     try{
       // Guard against a live fetch that hangs instead of failing outright —
@@ -1497,14 +1527,20 @@
         const data = await res.json();
         const place = data.places && data.places[0];
         if(place){
-          return {
-            city: place['place name'],
-            state: place['state abbreviation'] || place['state'] || '',
-            lat: parseFloat(place['latitude']),
-            lon: parseFloat(place['longitude']),
-            country: (data['country abbreviation'] || parsed.country).toUpperCase(),
-            approx: false
-          };
+          const lat = parseFloat(place['latitude']);
+          const lon = parseFloat(place['longitude']);
+          if(isSaneCoord(parsed.country, lat, lon)){
+            return {
+              city: place['place name'],
+              state: place['state abbreviation'] || place['state'] || '',
+              lat, lon,
+              country: (data['country abbreviation'] || parsed.country).toUpperCase(),
+              approx: false
+            };
+          }
+          // else: technically a "successful" response but the coordinate
+          // is nowhere near the requested country — fall through rather
+          // than trust it.
         }
       }
     }catch(e){ /* network hiccup, timeout, or blocked fetch — fall through to the next attempt */ }
@@ -1535,16 +1571,20 @@
           const stateAbbr = (parsed.country === 'us')
             ? (US_STATE_NAME_TO_ABBR[addr.state] || '')
             : (CA_PROVINCE_NAME_TO_ABBR[addr.state] || '');
-          if(stateAbbr){
+          const lat = parseFloat(hit.lat);
+          const lon = parseFloat(hit.lon);
+          if(stateAbbr && isSaneCoord(parsed.country, lat, lon)){
             return {
               city: cityName,
               state: stateAbbr,
-              lat: parseFloat(hit.lat),
-              lon: parseFloat(hit.lon),
+              lat, lon,
               country: parsed.country.toUpperCase(),
               approx: false
             };
           }
+          // else: matched something (a state name resolved, or not) but
+          // the coordinate itself is nowhere near the requested country —
+          // fall through to the offline table rather than trust it.
         }
       }
     }catch(e){ /* network hiccup, timeout, or blocked fetch — fall through to the offline table below */ }
@@ -2099,14 +2139,58 @@
     if(!footerReveal.contains(evt.target)) footerReveal.classList.remove('reveal');
   });
 
+  // A pin can end up with a bad stored coordinate from a past live-geocoder
+  // hiccup (see isSaneCoord above) even though the geocoder call itself
+  // "succeeded" at the time. Rather than requiring the person to manually
+  // re-enter their ZIP, repair it automatically using the ZIP/postal code
+  // already saved on the pin and the same reliable offline table used as
+  // the geocoder's own last-resort fallback — then save the correction so
+  // it's fixed for everyone, not just re-derived every time this device
+  // happens to load the page.
+  function repairInsaneCoords(pinList){
+    let changed = false;
+    pinList.forEach(p=>{
+      if(isSaneCoord((p.country || '').toLowerCase(), p.lat, p.lon)) return;
+      const parsed = p.zip ? classifyPostalInput(p.zip) : null;
+      if(!parsed) return;
+      let fixed = null;
+      if(parsed.country === 'us'){
+        fixed = US_ZIP3_FALLBACK[parsed.code.slice(0,3)] || US_DIGIT_FALLBACK[parsed.code[0]];
+      } else if(parsed.country === 'ca'){
+        fixed = CA_PROVINCE_FALLBACK[parsed.code[0]];
+      }
+      if(fixed){
+        p.lat = fixed.lat; p.lon = fixed.lon;
+        p.city = fixed.city; p.state = fixed.abbr;
+        p.approx = true;
+        changed = true;
+      }
+    });
+    return changed;
+  }
+
   // ---------- Init ----------
   (async function init(){
     initMap();
     pins = await loadPins();
+    if(repairInsaneCoords(pins)){
+      await savePins(pins); // persist the correction for every device, not just this one
+    }
     renderPins();
     const stamp = document.getElementById('debug-stamp');
     if(stamp){
-      stamp.textContent += ` — ${pins.length} pins — source: ${window.__lastFetchSource || 'n/a'} — sync: ${syncMode}`;
+      let extra = ` — ${pins.length} pins — source: ${window.__lastFetchSource || 'n/a'} — sync: ${syncMode}`;
+      const region = window.__saneFitRegion;
+      if(region){
+        const outliers = pins.filter(p=>
+          typeof p.lat === 'number' && typeof p.lon === 'number' &&
+          !region.contains([p.lat, p.lon])
+        );
+        if(outliers.length){
+          extra += ` — ⚠ excluded from default view (check location): ${outliers.map(p=>p.name).join(', ')}`;
+        }
+      }
+      stamp.textContent += extra;
     }
   })();
 })();
