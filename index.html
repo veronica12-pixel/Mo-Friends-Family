@@ -41,7 +41,7 @@
     padding:20px 8px 60px;
   }
   #app{
-    max-width:1080px;
+    max-width:560px;
     margin:0 auto;
   }
   .pin-count-corner{
@@ -173,18 +173,6 @@
     grid-template-columns: 1fr;
     gap:18px;
   }
-  @media(min-width: 860px){
-    #app{ max-width:1680px; }
-    .layout{
-      grid-template-columns: 1fr 360px;
-      align-items:start;
-    }
-    .map-card{
-      width:90%;
-      justify-self:center;
-    }
-  }
-
   .card{
     background:var(--paper);
     border:1px solid var(--card-border);
@@ -992,10 +980,14 @@
       scrollWheelZoom: true,
       doubleClickZoom: true,
       dragging: true,
-      tap: false // legacy touch shim removed — it was firing a phantom
-                 // double-tap on modern mobile browsers, which the OS
-                 // read as "zoom in" and enlarged the whole page a
-                 // moment after load
+      tap: false, // legacy touch shim removed — it was firing a phantom
+                  // double-tap on modern mobile browsers, which the OS
+                  // read as "zoom in" and enlarged the whole page a
+                  // moment after load
+      minZoom: 3  // floor on how far out ANY zoom can go, including the
+                  // auto-fit-to-everyone below — stops a single far-flung
+                  // pin (e.g. someone overseas) from blowing the view out
+                  // to a tiny, disorienting whole-world map
     });
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
