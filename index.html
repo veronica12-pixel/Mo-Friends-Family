@@ -1266,29 +1266,19 @@
       }
     }
 
-    let firebaseReachable = true;
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const rootRef = db.ref(ROOT);
 
-    // Debounced "something changed elsewhere" handler. Skip the very first
-    // snapshot (that's just the initial load, not a remote change) and skip
-    // snapshots caused by our own writes.
-    let sawInitialValue = false;
-    let reloadTimer = null;
-    rootRef.on("value", (snapshot) => {
-      firebaseReachable = true;
-      if (!sawInitialValue) { sawInitialValue = true; return; }
-      const data = snapshot.val() || {};
-      if (data.__lastWriter === CLIENT_ID) return;
-      clearTimeout(reloadTimer);
-      reloadTimer = setTimeout(() => { window.location.reload(); }, 700);
-    }, (err) => {
-      // Firebase itself reports this path isn't readable (permission-denied,
-      // etc). Don't let that take the app down — local storage still works.
-      firebaseReachable = false;
-      console.warn('Cloud sync unavailable for this app, saving locally only:', err);
-    });
+    // NOTE: there is deliberately no realtime "value" listener here that
+    // reloads the page on remote changes. That approach was tried and
+    // caused a reload feedback loop: any write (including this app's own
+    // permission-check write on load) looks like "someone else changed
+    // something" to every other open device, which reloads, which makes
+    // its own write, which reloads the first device again — forever, on
+    // every device that has the page open at the same time. Instead, this
+    // app's existing ~20-second polling loop (see setInterval below) picks
+    // up remote changes safely, just with a short delay and no reload.
 
     window.storage = {
       async get(key){
@@ -2201,7 +2191,7 @@ const STATE_PATHS = {
       pins = latest.data;
       renderPins();
     }
-  }, 20000);
+  }, 8000);
 
   // ---------- Decorative header candlesticks (random scatter, regenerated each load) ----------
   function renderHeaderChart(){
