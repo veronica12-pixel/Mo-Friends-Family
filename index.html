@@ -776,7 +776,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-4</div>
+    <div style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-5</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -1570,8 +1570,6 @@
     </svg>`;
   }
 
-  let hasSetInitialView = false; // fit-to-pins runs once, so the view doesn't jump around on later background syncs
-
   function renderPins(animateLastOnly){
     if(!mapReady) return;
     pinsLayer.clearLayers();
@@ -1621,16 +1619,6 @@
     if(pinCountCorner) pinCountCorner.textContent = pins.length;
     listCount.textContent = pins.length + (pins.length===1 ? ' person' : ' people');
     renderList();
-
-    // Set the initial view once, to the fixed US frame — not to wherever
-    // the pins happen to be. Fitting to pin locations was what made the
-    // view unpredictable (a single far-away pin could zoom the whole map
-    // out to a barely-readable world view). This always shows the same,
-    // stable region.
-    if(!hasSetInitialView){
-      hasSetInitialView = true;
-      map.fitBounds(VIEW_FRAME);
-    }
   }
 
   // ---------- Manual pin fine-tuning (drag to adjust) ----------
