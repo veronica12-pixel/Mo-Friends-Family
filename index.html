@@ -56,7 +56,7 @@
     z-index:0;
     pointer-events:none;
   }
-  header .eyebrow, header h1, header p, header .count-badge, header .sync-badge{
+  header .eyebrow, header h1, header p, header .count-badge{
     position:relative;
     z-index:1;
   }
@@ -101,21 +101,6 @@
     color:var(--gold);
     font-size:15px;
   }
-
-  .sync-badge{
-    display:inline-block;
-    margin-top:8px;
-    font-size:11px;
-    font-weight:600;
-    padding:4px 12px;
-    border-radius:999px;
-    background:rgba(255,255,255,0.06);
-    border:1px solid rgba(255,255,255,0.14);
-    color:#8FB4BE;
-  }
-  .sync-badge.mode-firebase{ color:#2FA88A; border-color:rgba(47,168,138,0.4); }
-  .sync-badge.mode-native{ color:#E3A23D; border-color:rgba(227,162,61,0.4); }
-  .sync-badge.mode-local{ color:#FF6B4A; border-color:rgba(255,107,74,0.4); }
 
   .layout{
     display:grid;
@@ -617,7 +602,6 @@
     <h1>Where We Are All From</h1>
     <p>Drop a pin with your ZIP code<br>and see the whole group light up the map.</p>
     <div class="count-badge">📍 <b id="hero-count">0</b> pins placed so far</div>
-    <div class="sync-badge" id="sync-badge">Checking sync…</div>
   </header>
 
   <div class="layout">
@@ -1316,18 +1300,12 @@
         return { key, value, shared: false };
       }
     };
-
-    return { rootRef, CLIENT_ID };
   }
 
   let syncMode = 'unknown';
-  let diagnosticRootRef = null;
-  let diagnosticClientId = null;
   if (typeof firebase !== 'undefined') {
     try{
-      const installed = installFirebaseStorage();
-      diagnosticRootRef = installed.rootRef;
-      diagnosticClientId = installed.CLIENT_ID;
+      installFirebaseStorage();
       syncMode = 'firebase';
     }catch(e){
       console.warn('Firebase setup failed, falling back:', e);
@@ -1339,7 +1317,7 @@
     if (nativeStorage) { window.storage = nativeStorage; syncMode = 'native'; }
     else { installLocalOnlyStorage(); syncMode = 'local'; }
   }
-  window.__mapSyncMode = syncMode; // exposed for on-page display below
+  window.__mapSyncMode = syncMode; // for manual console debugging only, not shown on-page
 
   const STORAGE_KEY = 'pins';
   const statesLayer = document.getElementById('states-layer');
@@ -1589,151 +1567,210 @@ const STATE_PATHS = {
   // ---------- Fun facts (offline — no live "fun fact" API exists to call) ----------
   // Tier 1: specific city match. Tier 2: state/province match. Tier 3: generic pool.
   const CITY_FACTS = {
-    'new york': "New York City's subway has 472 stations — more than any other system in the world.",
-    'los angeles': "LA's Griffith Observatory sits on a hill named after a man who once shot his own wife (she survived, and forgave him).",
-    'chicago': "The Chicago River is dyed green every St. Patrick's Day — a tradition since 1962.",
-    'houston': "The word \u201cHouston\u201d was the first word spoken from the surface of the Moon.",
-    'phoenix': "Phoenix gets so hot that the city has an official heat-response plan, and some roads have literally melted in summer.",
-    'philadelphia': "Philadelphia was the first officially designated \u201cWorld Heritage City\u201d in the United States.",
-    'san antonio': "The Alamo, one of America's most famous landmarks, sits right in the middle of downtown San Antonio.",
-    'san diego': "San Diego's zoo was one of the first in the world to house giant pandas outside China.",
-    'dallas': "The Kennedy assassination site, Dealey Plaza, is a National Historic Landmark in downtown Dallas.",
-    'san jose': "San Jose is often called the \u201cCapital of Silicon Valley,\u201d though it's actually bigger than San Francisco.",
-    'austin': "Austin is home to the largest urban bat colony in North America, living under the Congress Avenue Bridge.",
-    'jacksonville': "Jacksonville is the largest city by land area in the contiguous United States.",
-    'fort worth': "Fort Worth still holds a twice-daily cattle drive through its historic Stockyards district.",
-    'columbus': "Columbus, Ohio is often used as a test market for new fast-food menu items because its demographics mirror the whole US.",
-    'charlotte': "Charlotte is nicknamed the \u201cQueen City\u201d after Queen Charlotte of Mecklenburg-Strelitz.",
-    'san francisco': "San Francisco's cable cars are the only moving National Historic Landmark in the country.",
-    'indianapolis': "Indianapolis is home to the world's largest single-day sporting event: the Indy 500.",
-    'seattle': "Seattle has more billionaires per capita than almost any other US city, thanks to Amazon and Microsoft.",
-    'denver': "Denver's official elevation is exactly one mile high — the 13th step of the State Capitol marks it.",
-    'washington': "No building in Washington, D.C. is legally allowed to be taller than the Capitol building.",
-    'boston': "Boston's Freedom Trail is a 2.5-mile red-brick line connecting 16 historic sites through the city.",
-    'nashville': "Nashville is nicknamed \u201cMusic City,\u201d but it's also home to a full-scale replica of the Parthenon.",
-    'detroit': "Detroit's Belle Isle Park is bigger than New York's Central Park.",
-    'portland': "Portland has an official city motto, \u201cKeep Portland Weird,\u201d borrowed from Austin's similar slogan.",
-    'memphis': "Elvis Presley's home, Graceland, is the second most-visited house in America after the White House.",
-    'oklahoma city': "Oklahoma City is one of the largest cities by area in the US, thanks to aggressive annexation in the 1960s.",
-    'las vegas': "Las Vegas hotels contain 17 of the 20 largest hotels in the world by room count.",
-    'louisville': "Louisville is home to the Kentucky Derby and to the world's largest baseball bat, a 120-foot Louisville Slugger.",
-    'baltimore': "Baltimore's Fort McHenry is where Francis Scott Key wrote \u201cThe Star-Spangled Banner.\u201d",
-    'milwaukee': "Milwaukee is nicknamed \u201cBrew City\u201d for once being home to four of the world's largest breweries at once.",
-    'albuquerque': "Albuquerque hosts the largest hot air balloon festival on Earth every October.",
-    'tucson': "Tucson was the first city in the US to be designated a UNESCO City of Gastronomy.",
-    'fresno': "Fresno sits closer to three national parks (Yosemite, Sequoia, and Kings Canyon) than any other city.",
-    'sacramento': "Sacramento was a boomtown built almost overnight during the California Gold Rush of 1849.",
-    'atlanta': "Atlanta's airport has been the world's busiest by passenger traffic for most of the last two decades.",
-    'kansas city': "Kansas City has more fountains than any city besides Rome, earning it the nickname \u201cCity of Fountains.\u201d",
-    'miami': "Miami is the only major US city founded by a woman: Julia Tuttle.",
-    'raleigh': "Raleigh is one corner of North Carolina's \u201cResearch Triangle,\u201d anchored by three major universities.",
-    'omaha': "Omaha is the birthplace of the Reuben sandwich, according to local legend.",
-    'minneapolis': "Minneapolis has more theater seats per capita than any US city outside New York.",
-    'tulsa': "Tulsa's Art Deco skyline earned it the nickname \u201cOil Capital of the World\u201d during the early 20th century boom.",
-    'cleveland': "Cleveland is home to the Rock & Roll Hall of Fame, chosen partly because a local DJ popularized the term \u201crock and roll.\u201d",
-    'wichita': "Wichita is nicknamed \u201cThe Air Capital of the World\u201d for its concentration of aircraft manufacturers.",
-    'arlington': "Arlington, Texas is one of the largest US cities with no public transit rail system.",
-    'new orleans': "New Orleans sits mostly below sea level, kept dry by an extensive system of levees and pumps.",
-    'honolulu': "Honolulu is the only US state capital that isn't on the mainland — and the only one that was once a kingdom's capital too.",
-    'anchorage': "Anchorage is closer to Tokyo than it is to Washington, D.C.",
-    'tampa': "Tampa's Gasparilla Festival features a full pirate ship \u201cinvasion\u201d of the city every January.",
-    'orlando': "Orlando's Walt Disney World is roughly the same size as the city of San Francisco.",
-    'pittsburgh': "Pittsburgh has more bridges than any city in the world — over 440 of them.",
-    'cincinnati': "Cincinnati-style chili is traditionally served over spaghetti, which surprises almost everyone who isn't from there.",
-    'st. louis': "The St. Louis Gateway Arch is the tallest man-made monument in the Western Hemisphere.",
-    'raleigh': "Raleigh was one of the first planned cities in the US, laid out specifically to be North Carolina's capital.",
-    'salt lake city': "Salt Lake City's street grid is measured outward in blocks from the Mormon Temple at \u201c0,0.\u201d",
-    'richmond': "Richmond, Virginia served as the capital of the Confederacy during the Civil War.",
-    'buffalo': "Buffalo is credited as the birthplace of the chicken wing, invented at the Anchor Bar in 1964.",
-    'toronto': "Toronto's underground PATH network is the largest underground shopping complex in the world.",
-    'montreal': "Montreal is the second-largest French-speaking city in the world after Paris.",
-    'vancouver': "Vancouver is consistently ranked among the world's most livable cities and rarely sees snow despite Canada's reputation.",
-    'ottawa': "Ottawa's Rideau Canal becomes the world's largest naturally frozen skating rink every winter.",
-    'calgary': "Calgary hosts the Calgary Stampede, billed as \u201cthe greatest outdoor show on Earth.\u201d",
-    'edmonton': "Edmonton is home to West Edmonton Mall, once the largest shopping mall in the world.",
-    'winnipeg': "Winnipeg sits at \u201cThe Forks,\u201d a meeting point of two rivers that people have gathered at for 6,000 years.",
-    'quebec': "Quebec City is the only walled city north of Mexico in North America.",
-    'halifax': "Halifax has one of the largest natural harbors in the world, second only to Sydney, Australia.",
-    'odessa': "There's more than one Odessa on the map — this one shares its name with the famous port city in Ukraine."
+    'new york': [
+      "New York City's subway has 472 stations — more than any other system in the world.",
+      "Central Park is bigger than the entire country of Monaco."
+    ],
+    'los angeles': [
+      "LA's Griffith Observatory sits on a hill named after a man who once shot his own wife (she survived, and forgave him).",
+      "More languages are spoken in LA than in any other city on Earth — over 200 of them."
+    ],
+    'chicago': [
+      "The Chicago River is dyed green every St. Patrick's Day — a tradition since 1962.",
+      "Chicago is built on a swamp, and in the 1850s the city actually raised entire buildings on jacks to install sewers underneath."
+    ],
+    'houston': [
+      "The word \u201cHouston\u201d was the first word spoken from the surface of the Moon.",
+      "Houston has no official citywide zoning code, which is almost unheard of for a major US city."
+    ],
+    'phoenix': [
+      "Phoenix gets so hot that the city has an official heat-response plan, and some roads have literally melted in summer.",
+      "Phoenix was named for a city that would \u201crise from the ashes\u201d of an earlier Native American civilization on the same site."
+    ],
+    'philadelphia': ["Philadelphia was the first officially designated \u201cWorld Heritage City\u201d in the United States."],
+    'san antonio': ["The Alamo, one of America's most famous landmarks, sits right in the middle of downtown San Antonio."],
+    'san diego': ["San Diego's zoo was one of the first in the world to house giant pandas outside China."],
+    'dallas': ["The Kennedy assassination site, Dealey Plaza, is a National Historic Landmark in downtown Dallas."],
+    'san jose': ["San Jose is often called the \u201cCapital of Silicon Valley,\u201d though it's actually bigger than San Francisco."],
+    'austin': [
+      "Austin is home to the largest urban bat colony in North America, living under the Congress Avenue Bridge.",
+      "Austin's official slogan, \u201cKeep Austin Weird,\u201d started as a bumper sticker to support local businesses."
+    ],
+    'jacksonville': ["Jacksonville is the largest city by land area in the contiguous United States."],
+    'fort worth': ["Fort Worth still holds a twice-daily cattle drive through its historic Stockyards district."],
+    'columbus': ["Columbus, Ohio is often used as a test market for new fast-food menu items because its demographics mirror the whole US."],
+    'charlotte': ["Charlotte is nicknamed the \u201cQueen City\u201d after Queen Charlotte of Mecklenburg-Strelitz."],
+    'san francisco': [
+      "San Francisco's cable cars are the only moving National Historic Landmark in the country.",
+      "The Golden Gate Bridge isn't gold — it's painted a color called \u201cInternational Orange.\u201d"
+    ],
+    'indianapolis': ["Indianapolis is home to the world's largest single-day sporting event: the Indy 500."],
+    'seattle': [
+      "Seattle has more billionaires per capita than almost any other US city, thanks to Amazon and Microsoft.",
+      "The Space Needle was built for the 1962 World's Fair and was once the tallest structure west of the Mississippi."
+    ],
+    'denver': ["Denver's official elevation is exactly one mile high — the 13th step of the State Capitol marks it."],
+    'washington': [
+      "No building in Washington, D.C. is legally allowed to be taller than the Capitol building.",
+      "Washington, D.C. isn't part of any US state — it's its own federal district."
+    ],
+    'boston': ["Boston's Freedom Trail is a 2.5-mile red-brick line connecting 16 historic sites through the city."],
+    'nashville': ["Nashville is nicknamed \u201cMusic City,\u201d but it's also home to a full-scale replica of the Parthenon."],
+    'detroit': ["Detroit's Belle Isle Park is bigger than New York's Central Park."],
+    'portland': ["Portland has an official city motto, \u201cKeep Portland Weird,\u201d borrowed from Austin's similar slogan."],
+    'memphis': ["Elvis Presley's home, Graceland, is the second most-visited house in America after the White House."],
+    'oklahoma city': ["Oklahoma City is one of the largest cities by area in the US, thanks to aggressive annexation in the 1960s."],
+    'las vegas': ["Las Vegas hotels contain 17 of the 20 largest hotels in the world by room count."],
+    'louisville': ["Louisville is home to the Kentucky Derby and to the world's largest baseball bat, a 120-foot Louisville Slugger."],
+    'baltimore': ["Baltimore's Fort McHenry is where Francis Scott Key wrote \u201cThe Star-Spangled Banner.\u201d"],
+    'milwaukee': ["Milwaukee is nicknamed \u201cBrew City\u201d for once being home to four of the world's largest breweries at once."],
+    'albuquerque': ["Albuquerque hosts the largest hot air balloon festival on Earth every October."],
+    'tucson': ["Tucson was the first city in the US to be designated a UNESCO City of Gastronomy."],
+    'fresno': ["Fresno sits closer to three national parks (Yosemite, Sequoia, and Kings Canyon) than any other city."],
+    'sacramento': ["Sacramento was a boomtown built almost overnight during the California Gold Rush of 1849."],
+    'atlanta': [
+      "Atlanta's airport has been the world's busiest by passenger traffic for most of the last two decades.",
+      "Coca-Cola was invented in Atlanta in 1886 by a local pharmacist."
+    ],
+    'kansas city': ["Kansas City has more fountains than any city besides Rome, earning it the nickname \u201cCity of Fountains.\u201d"],
+    'miami': ["Miami is the only major US city founded by a woman: Julia Tuttle."],
+    'raleigh': [
+      "Raleigh is one corner of North Carolina's \u201cResearch Triangle,\u201d anchored by three major universities.",
+      "Raleigh was one of the first planned cities in the US, laid out specifically to be North Carolina's capital."
+    ],
+    'omaha': ["Omaha is the birthplace of the Reuben sandwich, according to local legend."],
+    'minneapolis': ["Minneapolis has more theater seats per capita than any US city outside New York."],
+    'tulsa': ["Tulsa's Art Deco skyline earned it the nickname \u201cOil Capital of the World\u201d during the early 20th century boom."],
+    'cleveland': ["Cleveland is home to the Rock & Roll Hall of Fame, chosen partly because a local DJ popularized the term \u201crock and roll.\u201d"],
+    'wichita': ["Wichita is nicknamed \u201cThe Air Capital of the World\u201d for its concentration of aircraft manufacturers."],
+    'arlington': ["Arlington, Texas is one of the largest US cities with no public transit rail system."],
+    'new orleans': [
+      "New Orleans sits mostly below sea level, kept dry by an extensive system of levees and pumps.",
+      "Mardi Gras beads were originally thrown from floats starting in the late 1800s and have been a New Orleans tradition ever since."
+    ],
+    'honolulu': ["Honolulu is the only US state capital that isn't on the mainland — and the only one that was once a kingdom's capital too."],
+    'anchorage': ["Anchorage is closer to Tokyo than it is to Washington, D.C."],
+    'tampa': ["Tampa's Gasparilla Festival features a full pirate ship \u201cinvasion\u201d of the city every January."],
+    'orlando': ["Orlando's Walt Disney World is roughly the same size as the city of San Francisco."],
+    'pittsburgh': ["Pittsburgh has more bridges than any city in the world — over 440 of them."],
+    'cincinnati': ["Cincinnati-style chili is traditionally served over spaghetti, which surprises almost everyone who isn't from there."],
+    'st. louis': ["The St. Louis Gateway Arch is the tallest man-made monument in the Western Hemisphere."],
+    'salt lake city': ["Salt Lake City's street grid is measured outward in blocks from the Mormon Temple at \u201c0,0.\u201d"],
+    'richmond': ["Richmond, Virginia served as the capital of the Confederacy during the Civil War."],
+    'buffalo': ["Buffalo is credited as the birthplace of the chicken wing, invented at the Anchor Bar in 1964."],
+    'toronto': [
+      "Toronto's underground PATH network is the largest underground shopping complex in the world.",
+      "The CN Tower held the record for world's tallest freestanding structure for over 30 years."
+    ],
+    'montreal': ["Montreal is the second-largest French-speaking city in the world after Paris."],
+    'vancouver': ["Vancouver is consistently ranked among the world's most livable cities and rarely sees snow despite Canada's reputation."],
+    'ottawa': ["Ottawa's Rideau Canal becomes the world's largest naturally frozen skating rink every winter."],
+    'calgary': ["Calgary hosts the Calgary Stampede, billed as \u201cthe greatest outdoor show on Earth.\u201d"],
+    'edmonton': ["Edmonton is home to West Edmonton Mall, once the largest shopping mall in the world."],
+    'winnipeg': ["Winnipeg sits at \u201cThe Forks,\u201d a meeting point of two rivers that people have gathered at for 6,000 years."],
+    'quebec': ["Quebec City is the only walled city north of Mexico in North America."],
+    'halifax': ["Halifax has one of the largest natural harbors in the world, second only to Sydney, Australia."],
+    'odessa': ["There's more than one Odessa on the map — this one shares its name with the famous port city in Ukraine."]
   };
 
   const STATE_FACTS = {
-    'AL':"Alabama is home to the US Space & Rocket Center, where the Saturn V rockets were developed.",
-    'AK':"Alaska has more coastline than all other US states combined.",
-    'AZ':"Arizona is the only US state that doesn't observe daylight saving time (aside from the Navajo Nation within it).",
-    'AR':"Arkansas is the only US state with a diamond mine open to the public where you can keep what you find.",
-    'CA':"California's economy alone would rank as one of the largest in the world if it were its own country.",
-    'CO':"Colorado has the highest average elevation of any US state.",
-    'CT':"Connecticut is home to the oldest continuously published newspaper in America, the Hartford Courant.",
-    'DE':"Delaware was the first state to ratify the US Constitution, earning its nickname \u201cThe First State.\u201d",
-    'DC':"Washington, D.C. residents didn't get the right to vote for president until 1961.",
-    'FL':"Florida is the only US state bordered by two different bodies of salt water — the Atlantic and the Gulf.",
-    'GA':"Georgia is the largest state east of the Mississippi River by land area.",
-    'HI':"Hawaii is the only US state made up entirely of islands, and it's still growing thanks to an active volcano.",
-    'ID':"Idaho produces about a third of all potatoes grown in the United States.",
-    'IL':"Illinois is home to the first skyscraper ever built, Chicago's 1885 Home Insurance Building.",
-    'IN':"Indiana hosts the Indianapolis 500, the largest single-day sporting event in the world.",
-    'IA':"Iowa grows more corn than any other US state.",
-    'KS':"Kansas produces more wheat than any other state, earning it the nickname \u201cThe Wheat State.\u201d",
-    'KY':"Kentucky is home to more bourbon barrels than people.",
-    'LA':"Louisiana is the only US state with parishes instead of counties.",
-    'ME':"Maine is the only US state that borders exactly one other state.",
-    'MD':"Maryland's state sport is jousting.",
-    'MA':"Massachusetts was the site of the first Thanksgiving and the first public park in America, Boston Common.",
-    'MI':"Michigan has the longest freshwater coastline of any political unit in the world.",
-    'MN':"Minnesota is home to over 11,000 lakes, giving it the nickname \u201cLand of 10,000 Lakes\u201d (an undercount, apparently).",
-    'MS':"Mississippi is the birthplace of the blues, root beer, and Coca-Cola's first bottling franchise.",
-    'MO':"Missouri is home to the Gateway Arch, the tallest arch in the world.",
-    'MT':"Montana has more species of mammals than any other US state.",
-    'NE':"Nebraska is the only US state with a unicameral (single-house) state legislature.",
-    'NV':"Nevada produces more gold than any US state and is one of the top gold producers on Earth.",
-    'NH':"New Hampshire was the first state to declare independence from Britain, ahead of the Declaration of Independence.",
-    'NJ':"New Jersey has more diners than any other state, earning it the unofficial title \u201cDiner Capital of the World.\u201d",
-    'NM':"New Mexico is home to White Sands, the largest gypsum dune field in the world.",
-    'NY':"New York's Adirondack Park is larger than Yellowstone, Everglades, Glacier, and Grand Canyon National Parks combined.",
-    'NC':"North Carolina is where the Wright brothers achieved the first powered flight, at Kitty Hawk.",
-    'ND':"North Dakota is home to the geographic center of North America, near the town of Rugby.",
-    'OH':"Ohio has produced more US presidents (born there) than any state except Virginia.",
-    'OK':"Oklahoma has more man-made lakes than any other state in the country.",
-    'OR':"Oregon has a state law requiring gas stations to have attendants pump your gas in most of the state.",
-    'PA':"Pennsylvania is home to the oldest zoo in the United States, in Philadelphia.",
-    'RI':"Rhode Island is the smallest US state by area but has one of the longest official names: \u201cRhode Island and Providence Plantations.\u201d",
-    'SC':"South Carolina is home to Angel Oak, a tree estimated to be 400\u2013500 years old.",
-    'SD':"South Dakota's Mount Rushmore took 14 years to carve and used dynamite for 90% of the work.",
-    'TN':"Tennessee is the base of the Great Smoky Mountains, the most visited national park in the US.",
-    'TX':"Texas is the only US state that was once its own independent country before joining the union.",
-    'UT':"Utah is home to the Bonneville Salt Flats, where land speed records have been set for over a century.",
-    'VT':"Vermont is the only New England state without any coastline.",
-    'VA':"Virginia has produced more US presidents than any other state — eight so far.",
-    'WA':"Washington State grows more apples than any other US state.",
-    'WV':"West Virginia is the only US state formed by seceding from a Confederate state during the Civil War.",
-    'WI':"Wisconsin produces more cheese than any other US state, over 3 billion pounds a year.",
-    'WY':"Wyoming was the first US state (then territory) to grant women the right to vote, in 1869.",
-    'ON':"Ontario is home to Niagara Falls, which sends over 3,000 tons of water over the edge every second.",
-    'QC':"Quebec is the largest province in Canada by area — bigger than Alaska.",
-    'BC':"British Columbia has one of the mildest climates in Canada thanks to Pacific Ocean currents.",
-    'AB':"Alberta is home to Banff, Canada's first-ever national park, established in 1885.",
-    'MB':"Manitoba's Hudson Bay coastline is home to more polar bears than almost anywhere else on Earth.",
-    'SK':"Saskatchewan has more sunny days per year than any other Canadian province.",
-    'NS':"Nova Scotia has the highest tides in the world, in the Bay of Fundy.",
-    'NB':"New Brunswick is Canada's only officially bilingual province.",
-    'NL':"Newfoundland was the last Canadian province to join confederation, in 1949.",
-    'PE':"Prince Edward Island is the smallest Canadian province, and the setting of Anne of Green Gables.",
-    'YT':"Yukon is home to Canada's highest peak, Mount Logan.",
-    'NT':"The Northwest Territories see the midnight sun in summer — daylight nearly around the clock."
+    'AL':["Alabama is home to the US Space & Rocket Center, where the Saturn V rockets were developed.","The world's first 911 call was placed in Haleyville, Alabama, in 1968."],
+    'AK':["Alaska has more coastline than all other US states combined.","Alaska is so large it spans four time zones' worth of longitude, though it now uses just one."],
+    'AZ':["Arizona is the only US state that doesn't observe daylight saving time (aside from the Navajo Nation within it).","The Grand Canyon in Arizona is over a mile deep and took nearly six million years to form."],
+    'AR':["Arkansas is the only US state with a diamond mine open to the public where you can keep what you find.","Hot Springs, Arkansas gave Major League Baseball its very first spring training site."],
+    'CA':["California's economy alone would rank as one of the largest in the world if it were its own country.","California is home to both the highest point (Mount Whitney) and one of the lowest (Death Valley) in the contiguous US, less than 100 miles apart."],
+    'CO':["Colorado has the highest average elevation of any US state.","Colorado is the only state entirely above 1,000 meters in elevation."],
+    'CT':["Connecticut is home to the oldest continuously published newspaper in America, the Hartford Courant.","The first hamburger in the US is claimed to have been served in New Haven, Connecticut, in 1900."],
+    'DE':["Delaware was the first state to ratify the US Constitution, earning its nickname \u201cThe First State.\u201d","Delaware has no sales tax at all, which draws shoppers from neighboring states."],
+    'DC':["Washington, D.C. residents didn't get the right to vote for president until 1961.","D.C.'s license plates read \u201cEnd Taxation Without Representation.\u201d"],
+    'FL':["Florida is the only US state bordered by two different bodies of salt water — the Atlantic and the Gulf.","Florida has more lightning strikes than any other US state, earning central Florida the nickname \u201cLightning Alley.\u201d"],
+    'GA':["Georgia is the largest state east of the Mississippi River by land area.","Georgia grows more peanuts than any other US state."],
+    'HI':["Hawaii is the only US state made up entirely of islands, and it's still growing thanks to an active volcano.","Hawaii is the only US state that grows coffee commercially."],
+    'ID':["Idaho produces about a third of all potatoes grown in the United States.","Idaho is home to a large chunk of the ancient Oregon Trail still visible in wagon-wheel ruts today."],
+    'IL':["Illinois is home to the first skyscraper ever built, Chicago's 1885 Home Insurance Building.","Illinois is nicknamed the \u201cLand of Lincoln,\u201d even though Lincoln was born in Kentucky."],
+    'IN':["Indiana hosts the Indianapolis 500, the largest single-day sporting event in the world.","Indiana is the country's largest producer of popcorn among US states, alongside Nebraska."],
+    'IA':["Iowa grows more corn than any other US state.","Iowa is the only US state whose east and west borders are formed entirely by rivers."],
+    'KS':["Kansas produces more wheat than any other state, earning it the nickname \u201cThe Wheat State.\u201d","The exact geographic center of the contiguous United States is in Kansas, near the town of Lebanon."],
+    'KY':["Kentucky is home to more bourbon barrels than people.","Mammoth Cave in Kentucky is the longest known cave system in the world."],
+    'LA':["Louisiana is the only US state with parishes instead of counties.","Louisiana's legal system is based partly on French civil law, unlike every other US state."],
+    'ME':["Maine is the only US state that borders exactly one other state.","Maine produces almost all of the wild blueberries grown in the United States."],
+    'MD':["Maryland's state sport is jousting.","Maryland is home to the oldest state house in continuous legislative use in the country, in Annapolis."],
+    'MA':["Massachusetts was the site of the first Thanksgiving and the first public park in America, Boston Common.","The first American subway system opened in Boston in 1897."],
+    'MI':["Michigan has the longest freshwater coastline of any political unit in the world.","Michigan is the only US state made up of two separate peninsulas."],
+    'MN':["Minnesota is home to over 11,000 lakes, giving it the nickname \u201cLand of 10,000 Lakes\u201d (an undercount, apparently).","Minneapolis and St. Paul are called the \u201cTwin Cities\u201d because they sit directly across the Mississippi River from each other."],
+    'MS':["Mississippi is the birthplace of the blues, root beer, and Coca-Cola's first bottling franchise.","The teddy bear is said to be named after Mississippi hunting trip involving President Theodore Roosevelt."],
+    'MO':["Missouri is home to the Gateway Arch, the tallest arch in the world.","Missouri's nickname, \u201cThe Show-Me State,\u201d reflects a reputation for good-natured skepticism."],
+    'MT':["Montana has more species of mammals than any other US state.","Montana is home to Glacier National Park, which straddles the Continental Divide."],
+    'NE':["Nebraska is the only US state with a unicameral (single-house) state legislature.","Kool-Aid was invented in Hastings, Nebraska, and is the official state soft drink."],
+    'NV':["Nevada produces more gold than any US state and is one of the top gold producers on Earth.","Nevada is the driest state in the US by average rainfall."],
+    'NH':["New Hampshire was the first state to declare independence from Britain, ahead of the Declaration of Independence.","New Hampshire's state motto, \u201cLive Free or Die,\u201d appears on every license plate in the state."],
+    'NJ':["New Jersey has more diners than any other state, earning it the unofficial title \u201cDiner Capital of the World.\u201d","New Jersey is the most densely populated US state."],
+    'NM':["New Mexico is home to White Sands, the largest gypsum dune field in the world.","New Mexico's official state question is \u201cRed or green?\u201d — referring to chile pepper preference."],
+    'NY':["New York's Adirondack Park is larger than Yellowstone, Everglades, Glacier, and Grand Canyon National Parks combined.","New York was briefly the capital of the entire United States, from 1789 to 1790."],
+    'NC':["North Carolina is where the Wright brothers achieved the first powered flight, at Kitty Hawk.","North Carolina is the country's leading producer of sweet potatoes."],
+    'ND':["North Dakota is home to the geographic center of North America, near the town of Rugby.","North Dakota produces more honey than any other US state."],
+    'OH':["Ohio has produced more US presidents (born there) than any state except Virginia.","Ohio was the first state admitted to the Union from the Northwest Territory."],
+    'OK':["Oklahoma has more man-made lakes than any other state in the country.","The shopping cart was invented in Oklahoma City in 1937."],
+    'OR':["Oregon has a state law requiring gas stations to have attendants pump your gas in most of the state.","Crater Lake in Oregon is the deepest lake in the United States."],
+    'PA':["Pennsylvania is home to the oldest zoo in the United States, in Philadelphia.","The first computer, ENIAC, was built at the University of Pennsylvania in 1945."],
+    'RI':["Rhode Island is the smallest US state by area but has one of the longest official names: \u201cRhode Island and Providence Plantations.\u201d","The first circus in America was staged in Newport, Rhode Island, in 1774."],
+    'SC':["South Carolina is home to Angel Oak, a tree estimated to be 400\u2013500 years old.","South Carolina was the first state to secede from the Union in 1860."],
+    'SD':["South Dakota's Mount Rushmore took 14 years to carve and used dynamite for 90% of the work.","South Dakota is home to the world's only Corn Palace, redecorated with a new corn mural every year."],
+    'TN':["Tennessee is the base of the Great Smoky Mountains, the most visited national park in the US.","Tennessee shares a border with eight other states, tied for the most of any US state."],
+    'TX':["Texas is the only US state that was once its own independent country before joining the union.","Texas is so big it has 10 distinct climate regions within its borders."],
+    'UT':["Utah is home to the Bonneville Salt Flats, where land speed records have been set for over a century.","Utah has five national parks, more than almost any other state."],
+    'VT':["Vermont is the only New England state without any coastline.","Vermont produces more maple syrup than any other US state."],
+    'VA':["Virginia has produced more US presidents than any other state — eight so far.","The first permanent English settlement in America, Jamestown, was in Virginia."],
+    'WA':["Washington State grows more apples than any other US state.","Washington is home to the wettest place in the contiguous US, the Hoh Rainforest."],
+    'WV':["West Virginia is the only US state formed by seceding from a Confederate state during the Civil War.","West Virginia is entirely within the Appalachian Mountains region."],
+    'WI':["Wisconsin produces more cheese than any other US state, over 3 billion pounds a year.","The first ever ice cream sundae is claimed to have been served in Two Rivers, Wisconsin."],
+    'WY':["Wyoming was the first US state (then territory) to grant women the right to vote, in 1869.","Yellowstone, the world's first national park, sits mostly within Wyoming."],
+    'ON':["Ontario is home to Niagara Falls, which sends over 3,000 tons of water over the edge every second.","Ontario is Canada's most populous province, home to nearly 40% of all Canadians."],
+    'QC':["Quebec is the largest province in Canada by area — bigger than Alaska.","Quebec's Old City is the only walled city in North America north of Mexico."],
+    'BC':["British Columbia has one of the mildest climates in Canada thanks to Pacific Ocean currents.","British Columbia is home to temperate rainforests where trees can live over 1,000 years."],
+    'AB':["Alberta is home to Banff, Canada's first-ever national park, established in 1885.","Alberta has no provincial sales tax, unique among Canadian provinces."],
+    'MB':["Manitoba's Hudson Bay coastline is home to more polar bears than almost anywhere else on Earth.","Winnipeg, Manitoba's capital, sits at the exact geographic center of North America."],
+    'SK':["Saskatchewan has more sunny days per year than any other Canadian province.","Saskatchewan is the only Canadian province with no natural border — its edges are all straight lines."],
+    'NS':["Nova Scotia has the highest tides in the world, in the Bay of Fundy.","Nova Scotia is almost an island, connected to the mainland by a narrow strip of land."],
+    'NB':["New Brunswick is Canada's only officially bilingual province.","New Brunswick's Bay of Fundy tides can reach over 16 meters, among the highest on Earth."],
+    'NL':["Newfoundland was the last Canadian province to join confederation, in 1949.","Newfoundland has its own time zone, a half hour off from the rest of Atlantic Canada."],
+    'PE':["Prince Edward Island is the smallest Canadian province, and the setting of Anne of Green Gables.","PEI is connected to the mainland by the Confederation Bridge, one of the longest bridges over ice-covered water in the world."],
+    'YT':["Yukon is home to Canada's highest peak, Mount Logan.","The Yukon's population is still smaller than many single neighborhoods in Toronto."],
+    'NT':["The Northwest Territories see the midnight sun in summer — daylight nearly around the clock.","The Northwest Territories cover a larger area than Texas, California, and Montana combined."]
   };
 
   const GENERIC_FUN_FACTS = [
     "Every pin on this map represents a real place someone in your group calls home — a little constellation of connections.",
     "The shortest distance between two points on a globe is a curve, not a straight line — that's why flight paths look bent on flat maps.",
     "Humans have been making maps for over 8,000 years, since long before written language existed.",
-    "There's no such thing as a perfectly accurate flat map of a round Earth — every projection distorts something."
+    "There's no such thing as a perfectly accurate flat map of a round Earth — every projection distorts something.",
+    "The word \u201cmap\u201d comes from the Latin \u201cmappa,\u201d meaning cloth — early maps were painted on fabric.",
+    "Pin drops on digital maps trace back to literal pins pushed into paper maps on office walls."
   ];
+
+  // Remember the last fact shown per pin so tapping the same pin twice in a
+  // row gives you a different one when more than one is available, instead
+  // of feeling stuck on repeat.
+  const lastFactShown = {};
+
+  function pickFact(facts, pinId){
+    if(!facts || facts.length === 0) return null;
+    if(facts.length === 1) return facts[0];
+    let choices = facts;
+    const last = lastFactShown[pinId];
+    if(last !== undefined){
+      const filtered = facts.filter((f, i) => i !== last);
+      if(filtered.length > 0) choices = filtered;
+    }
+    const chosen = choices[Math.floor(Math.random() * choices.length)];
+    lastFactShown[pinId] = facts.indexOf(chosen);
+    return chosen;
+  }
 
   function getFunFact(pin){
     const cityKey = (pin.city || '').trim().toLowerCase();
-    if(CITY_FACTS[cityKey]) return CITY_FACTS[cityKey];
-    if(STATE_FACTS[pin.state]) return STATE_FACTS[pin.state];
+    if(CITY_FACTS[cityKey]) return pickFact(CITY_FACTS[cityKey], pin.id);
+    if(STATE_FACTS[pin.state]) return pickFact(STATE_FACTS[pin.state], pin.id + ':state');
     return GENERIC_FUN_FACTS[Math.floor(Math.random() * GENERIC_FUN_FACTS.length)];
   }
 
@@ -2215,57 +2252,6 @@ const STATE_PATHS = {
   // we've actually attempted a round-trip write+read — not just whether the
   // SDK loaded, since a successful SDK init says nothing about whether the
   // database's security rules actually permit this app's Firebase path.
-  (function showSyncBadge(){
-    const badge = document.getElementById('sync-badge');
-    if(!badge) return;
-    const labels = {
-      firebase:        { text: '☁️ Cloud sync — works across all your devices', cls: 'mode-firebase' },
-      'firebase-denied':{ text: '⛔ Cloud connected but blocked — check Firebase rules', cls: 'mode-local' },
-      native:           { text: '🔗 Claude sync — may not sync across separate devices', cls: 'mode-native' },
-      local:            { text: '📍 This device only — not syncing anywhere else', cls: 'mode-local' },
-      unknown:          { text: 'Sync status unknown', cls: '' }
-    };
-    function render(mode){
-      const info = labels[mode] || labels.unknown;
-      badge.className = 'sync-badge';
-      badge.textContent = info.text;
-      if(info.cls) badge.classList.add(info.cls);
-    }
-
-    if(syncMode !== 'firebase' || !diagnosticRootRef){
-      render(syncMode);
-      return;
-    }
-
-    // We claim to be using Firebase — actually prove it with a real write
-    // and read against the same path the pins themselves use.
-    //
-    // IMPORTANT: this write must be tagged with __lastWriter = our own
-    // CLIENT_ID, exactly like the real pins save does. Without that tag,
-    // the "did something change remotely?" listener sees this test write,
-    // doesn't recognize it as our own, and triggers an automatic reload —
-    // which re-runs this very test on every load, causing an infinite
-    // reload loop on every open device. (This is exactly what happened
-    // before this fix — lesson learned.)
-    const testKey = '__synctest__';
-    const testVal = { t: Date.now(), from: Math.random().toString(36).slice(2) };
-    const updates = {};
-    updates[testKey] = testVal;
-    updates['__lastWriter'] = diagnosticClientId;
-    diagnosticRootRef.update(updates)
-      .then(()=> diagnosticRootRef.child(testKey).once('value'))
-      .then((snap)=>{
-        render(snap.val() ? 'firebase' : 'firebase-denied');
-        diagnosticRootRef.child(testKey).remove().catch(()=>{}); // tidy up, best-effort
-      })
-      .catch((e)=>{
-        console.warn('Firebase permission test failed — likely a security-rules issue for this path:', e);
-        render('firebase-denied');
-      });
-    badge.className = 'sync-badge';
-    badge.textContent = 'Checking sync…';
-  })();
-
   // ---------- Save As modal (hover over "© Thor 2026" on desktop, tap on touch devices) ----------
   const footerReveal = document.getElementById('footer-reveal');
   const footerCopyright = document.getElementById('footer-copyright');
