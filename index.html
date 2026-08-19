@@ -247,14 +247,6 @@
   .tooltip-panel .who{ font-weight:700; }
   .tooltip-panel .where{ color:var(--ink-soft); }
 
-  .chart-caption{
-    font-size:10.5px;
-    color:var(--ink-soft);
-    text-align:right;
-    padding:4px 16px 0;
-    font-style:italic;
-  }
-
   .form-card{ padding:20px; }
   .collapsible > summary{
     display:flex;
@@ -1103,12 +1095,11 @@
       <div class="tooltip-panel" id="tooltip-panel">
         <span class="empty">Tap a pin to see who it is 👆</span>
       </div>
-      <div class="chart-caption">📈 3-year chart in the background is illustrative, not live market data.</div>
     </div>
 
     <div>
       <div class="card form-card">
-        <details class="collapsible" open>
+        <details class="collapsible">
           <summary>
             <span class="collapsible-title" id="form-title">Add your pin</span>
             <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
@@ -1323,6 +1314,7 @@
   const statesLayer = document.getElementById('states-layer');
   const pinsLayer = document.getElementById('pins-layer');
   const form = document.getElementById('pin-form');
+  const formDetails = form.closest('details');
   const formTitle = document.getElementById('form-title');
   const editBanner = document.getElementById('edit-banner');
   const editBannerName = document.getElementById('edit-banner-name');
@@ -2046,6 +2038,7 @@ const STATE_PATHS = {
     editBanner.classList.add('visible');
     submitBtn.textContent = 'Save changes';
     setStatus('');
+    if(formDetails) formDetails.open = true; // the form may be collapsed — make sure it's visible to edit
     form.scrollIntoView({block:'nearest'});
     nameInput.focus();
   }
