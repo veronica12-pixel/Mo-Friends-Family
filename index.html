@@ -218,11 +218,10 @@
     background:rgba(255,253,248,0.85);
     font-size:10px;
   }
-  .leaflet-control-zoom{ display:none; } /* zoom buttons removed per request; scroll/pinch/dblclick zoom still work */
 
   .drag-hint{
     position:absolute;
-    bottom:12px;
+    top:12px;
     left:12px;
     background:rgba(18,60,77,0.85);
     color:var(--paper);
@@ -788,7 +787,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-14</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-18</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -995,7 +994,9 @@
     map = L.map('map', {
       center: US_CENTER,
       zoom: US_DEFAULT_ZOOM,
-      zoomControl: false,      // custom +/- buttons were removed per request
+      zoomControl: false,      // added manually below, positioned bottom-left
+      zoomSnap: 0.5,           // allows half zoom-levels, not just whole numbers
+      zoomDelta: 0.5,          // each +/- click moves by half a level instead of a full one
       scrollWheelZoom: true,
       doubleClickZoom: true,
       dragging: true,
@@ -1022,6 +1023,8 @@
     // Move the required OpenStreetMap attribution out of the bottom-right
     // corner, since that's where the pin-count box now lives.
     map.attributionControl.setPosition('topright');
+
+    L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
     map.on('movestart zoomstart', ()=> dragHint.classList.add('hidden'));
 
