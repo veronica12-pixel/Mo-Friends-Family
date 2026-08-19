@@ -1327,12 +1327,15 @@
         return { key, value, shared: false };
       }
     };
+
+    return rootRef;
   }
 
   let syncMode = 'unknown';
+  let diagnosticRootRef = null;
   if (typeof firebase !== 'undefined') {
     try{
-      installFirebaseStorage();
+      diagnosticRootRef = installFirebaseStorage();
       syncMode = 'firebase';
     }catch(e){
       console.warn('Firebase setup failed, falling back:', e);
@@ -2240,18 +2243,47 @@ const STATE_PATHS = {
   renderHeaderChart();
 
   // ---------- Sync status badge ----------
+  // Shows "Checking sync…" immediately, then upgrades to a real result once
+  // we've actually attempted a round-trip write+read — not just whether the
+  // SDK loaded, since a successful SDK init says nothing about whether the
+  // database's security rules actually permit this app's Firebase path.
   (function showSyncBadge(){
     const badge = document.getElementById('sync-badge');
     if(!badge) return;
     const labels = {
-      firebase: { text: '☁️ Cloud sync — works across all your devices', cls: 'mode-firebase' },
-      native:   { text: '🔗 Claude sync — may not sync across separate devices', cls: 'mode-native' },
-      local:    { text: '📍 This device only — not syncing anywhere else', cls: 'mode-local' },
-      unknown:  { text: 'Sync status unknown', cls: '' }
+      firebase:        { text: '☁️ Cloud sync — works across all your devices', cls: 'mode-firebase' },
+      'firebase-denied':{ text: '⛔ Cloud connected but blocked — check Firebase rules', cls: 'mode-local' },
+      native:           { text: '🔗 Claude sync — may not sync across separate devices', cls: 'mode-native' },
+      local:            { text: '📍 This device only — not syncing anywhere else', cls: 'mode-local' },
+      unknown:          { text: 'Sync status unknown', cls: '' }
     };
-    const info = labels[syncMode] || labels.unknown;
-    badge.textContent = info.text;
-    if(info.cls) badge.classList.add(info.cls);
+    function render(mode){
+      const info = labels[mode] || labels.unknown;
+      badge.className = 'sync-badge';
+      badge.textContent = info.text;
+      if(info.cls) badge.classList.add(info.cls);
+    }
+
+    if(syncMode !== 'firebase' || !diagnosticRootRef){
+      render(syncMode);
+      return;
+    }
+
+    // We claim to be using Firebase — actually prove it with a real write
+    // and read against the same path the pins themselves use.
+    const testKey = '__synctest__';
+    const testVal = { t: Date.now(), from: Math.random().toString(36).slice(2) };
+    diagnosticRootRef.child(testKey).set(testVal)
+      .then(()=> diagnosticRootRef.child(testKey).once('value'))
+      .then((snap)=>{
+        render(snap.val() ? 'firebase' : 'firebase-denied');
+      })
+      .catch((e)=>{
+        console.warn('Firebase permission test failed — likely a security-rules issue for this path:', e);
+        render('firebase-denied');
+      });
+    badge.className = 'sync-badge';
+    badge.textContent = 'Checking sync…';
   })();
 
   // ---------- Save As modal (hover over "© Thor 2026" on desktop, tap on touch devices) ----------
