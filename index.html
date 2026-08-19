@@ -190,11 +190,23 @@
   .map-wrap{
     position:relative;
     width:100%;
-    aspect-ratio: 960/600;
+    height:0;
+    /* Old-school aspect-ratio trick: percentage padding is calculated
+       against the element's WIDTH even for top/bottom padding, so this
+       reliably reserves a 960:600 (8:5) box — 600/960 = 62.5% — using
+       CSS that's worked the same way in every browser since CSS2. We
+       switched to this from the modern `aspect-ratio` property because
+       this WhatsApp in-app WebView wasn't honoring aspect-ratio, leaving
+       the container far taller than intended and forcing the map to
+       zoom out to fill that extra height (showing all of South America
+       to fill unnecessary vertical space). This has no such gap. */
+    padding-bottom: 62.5%;
     background: linear-gradient(180deg, #1D5D73 0%, var(--ocean) 100%);
     overflow:hidden;
   }
   #map{
+    position:absolute;
+    inset:0;
     width:100%;
     height:100%;
   }
@@ -776,7 +788,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-12</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-14</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -979,13 +991,6 @@
   const US_DEFAULT_ZOOM = 4;
   const FOCUS_ZOOM = 11; // zoom level used when jumping to a specific person's pin
 
-  // Fixed viewing frame: roughly southern Canada down to the US/Mexico
-  // border, coast to coast. The map is locked to this region so it always
-  // shows just the US — never Mexico, Central America, South America, or
-  // open ocean past the coastlines — regardless of where individual pins
-  // happen to fall.
-  const VIEW_FRAME = L.latLngBounds([[50.5, -127], [24.5, -66.5]]);
-
   function initMap(){
     map = L.map('map', {
       center: US_CENTER,
@@ -1044,51 +1049,30 @@
     // "resize the tile grid," never a "move the map" operation.
     function syncMapSize(){ if(map) map.invalidateSize({ pan: false, animate: false }); }
 
-    // Fit the default view to wherever the actual pins are (not a
-    // hardcoded region) — but this needs the container's real on-screen
-    // pixel size to calculate correctly, and that size can still be
-    // unsettled for a moment on mobile (web fonts loading in, layout
-    // reflow). Calling it too early was the cause of every wrong-zoom bug
-    // so far. So: re-run this at every settle checkpoint below AND every
-    // time fresh pin data arrives, but stop for good once either (a) the
-    // person touches the map themselves, or (b) it's successfully fit to
-    // real pin data once. Without (b), a background sync bringing in a new
-    // pin from someone else's device later would re-trigger this and make
-    // the view feel like it was jumping around on its own — exactly the
-    // drifting behavior this app used to have and was fixed for once
-    // already.
+    // The default view is now a FIXED North America frame — not derived
+    // from pin data at all. Fitting to real pin coordinates kept breaking
+    // in practice: a single bad or unusual pin location (a stale bad
+    // geocode, a missing ZIP on an old record, etc.) would repeatedly blow
+    // the zoom out to show the whole world. A hardcoded frame has none of
+    // that fragility — it shows the same North America framing every
+    // time, on every device, regardless of what's in the pin data. Every
+    // real pin still renders as a marker as normal; this only controls
+    // the initial camera position.
+    const NORTH_AMERICA_FRAME = L.latLngBounds([[52, -128], [24, -66]]); // southern Canada
+      // (covers Calgary) down to just north of the Mexico border, coast to coast
     let userInteracted = false;
-    let hasFittedRealPins = false;
+    let hasFitted = false;
     let isProgrammaticMove = false;
     map.on('movestart zoomstart', ()=>{
       dragHint.classList.add('hidden');
       if(!isProgrammaticMove) userInteracted = true;
     });
-    // North America sanity box, used ONLY to decide which pins are
-    // trustworthy enough to steer the default zoom/pan — generous enough
-    // to cover Alaska, Hawaii, and all of Canada and Mexico. A pin outside
-    // this (almost always a bad ZIP→coordinates geocode, not a real
-    // location) gets excluded from that calculation so it can't blow the
-    // default view out to a whole-world zoom. It still renders as a
-    // regular marker either way — this only affects the initial framing.
-    const SANE_FIT_REGION = L.latLngBounds([[14, -172], [72, -50]]);
-    window.__saneFitRegion = SANE_FIT_REGION; // for the on-page debug stamp only
-
     function fitToPins(){
-      if(!map || userInteracted || hasFittedRealPins) return;
-      const latlngs = pins
-        .filter(p=> typeof p.lat === 'number' && typeof p.lon === 'number')
-        .filter(p=> SANE_FIT_REGION.contains([p.lat, p.lon]))
-        .map(p=> [p.lat, p.lon]);
+      if(!map || userInteracted || hasFitted) return;
       isProgrammaticMove = true;
-      if(latlngs.length){
-        map.fitBounds(L.latLngBounds(latlngs), { padding:[40,40], animate:false });
-        hasFittedRealPins = true; // done for good — no more auto-refitting
-      } else {
-        map.setView(US_CENTER, US_DEFAULT_ZOOM, { animate:false });
-        // no pins yet — leave hasFittedRealPins false so this runs again
-        // once the first real pin actually arrives
-      }
+      map.fitBounds(NORTH_AMERICA_FRAME, { animate:false });
+      hasFitted = true; // done for good — this never re-triggers, including
+                         // on later background syncs bringing in new pins
       isProgrammaticMove = false;
     }
     fitMapToPins = fitToPins;
@@ -2180,15 +2164,12 @@
     const stamp = document.getElementById('debug-stamp');
     if(stamp){
       let extra = ` — ${pins.length} pins — source: ${window.__lastFetchSource || 'n/a'} — sync: ${syncMode}`;
-      const region = window.__saneFitRegion;
-      if(region){
-        const outliers = pins.filter(p=>
-          typeof p.lat === 'number' && typeof p.lon === 'number' &&
-          !region.contains([p.lat, p.lon])
-        );
-        if(outliers.length){
-          extra += ` — ⚠ excluded from default view (check location): ${outliers.map(p=>p.name).join(', ')}`;
-        }
+      const outliers = pins.filter(p=>
+        typeof p.lat === 'number' && typeof p.lon === 'number' &&
+        !isSaneCoord((p.country || '').toLowerCase(), p.lat, p.lon)
+      );
+      if(outliers.length){
+        extra += ` — ⚠ location looks wrong (auto-repair couldn't fix — probably missing ZIP on the record): ${outliers.map(p=>p.name).join(', ')}`;
       }
       stamp.textContent += extra;
     }
