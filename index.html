@@ -1008,6 +1008,28 @@
 
     map.on('movestart zoomstart', ()=> dragHint.classList.add('hidden'));
 
+    // ---- Fix: keep the map's internal tile grid in sync with its actual
+    // on-screen size ----
+    // Leaflet measures the #map container's size once, at the moment
+    // L.map() runs. On mobile Safari, the container's real size (governed
+    // by CSS aspect-ratio + the surrounding grid layout) can still be
+    // settling at that exact instant — web fonts loading in, layout
+    // reflow, etc. When that happens, Leaflet keeps rendering tiles sized
+    // to the smaller, stale measurement forever, leaving a blank gap of
+    // empty background below the tiles even though the container itself
+    // is the correct (larger) height. Calling invalidateSize() tells
+    // Leaflet to re-measure and re-render at the correct size. We do this
+    // proactively at a few likely trigger points rather than just once.
+    function syncMapSize(){ if(map) map.invalidateSize(); }
+    requestAnimationFrame(syncMapSize);
+    setTimeout(syncMapSize, 250);
+    setTimeout(syncMapSize, 800);
+    if(document.fonts && document.fonts.ready){
+      document.fonts.ready.then(syncMapSize);
+    }
+    window.addEventListener('resize', syncMapSize);
+    window.addEventListener('orientationchange', ()=> setTimeout(syncMapSize, 300));
+
     mapReady = true;
     renderPins();
   }
