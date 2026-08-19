@@ -56,7 +56,7 @@
     z-index:0;
     pointer-events:none;
   }
-  header .eyebrow, header h1, header p, header .count-badge{
+  header .eyebrow, header h1, header p, header .count-badge, header .sync-badge{
     position:relative;
     z-index:1;
   }
@@ -101,6 +101,21 @@
     color:var(--gold);
     font-size:15px;
   }
+
+  .sync-badge{
+    display:inline-block;
+    margin-top:8px;
+    font-size:11px;
+    font-weight:600;
+    padding:4px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.14);
+    color:#8FB4BE;
+  }
+  .sync-badge.mode-firebase{ color:#2FA88A; border-color:rgba(47,168,138,0.4); }
+  .sync-badge.mode-native{ color:#E3A23D; border-color:rgba(227,162,61,0.4); }
+  .sync-badge.mode-local{ color:#FF6B4A; border-color:rgba(255,107,74,0.4); }
 
   .layout{
     display:grid;
@@ -603,6 +618,7 @@
     <h1>Where We Are All From</h1>
     <p>Drop a pin with your ZIP code<br>and see the whole group light up the map.</p>
     <div class="count-badge">📍 <b id="hero-count">0</b> pins placed so far</div>
+    <div class="sync-badge" id="sync-badge">Checking sync…</div>
   </header>
 
   <div class="layout">
@@ -1313,19 +1329,22 @@
     };
   }
 
+  let syncMode = 'unknown';
   if (typeof firebase !== 'undefined') {
     try{
       installFirebaseStorage();
+      syncMode = 'firebase';
     }catch(e){
       console.warn('Firebase setup failed, falling back:', e);
-      if (nativeStorage) window.storage = nativeStorage;
-      else installLocalOnlyStorage();
+      if (nativeStorage) { window.storage = nativeStorage; syncMode = 'native'; }
+      else { installLocalOnlyStorage(); syncMode = 'local'; }
     }
   } else {
     console.warn('Firebase SDK did not load (likely blocked in this sandbox) — falling back.');
-    if (nativeStorage) window.storage = nativeStorage;
-    else installLocalOnlyStorage();
+    if (nativeStorage) { window.storage = nativeStorage; syncMode = 'native'; }
+    else { installLocalOnlyStorage(); syncMode = 'local'; }
   }
+  window.__mapSyncMode = syncMode; // exposed for on-page display below
 
   const STORAGE_KEY = 'pins';
   const statesLayer = document.getElementById('states-layer');
@@ -2219,6 +2238,21 @@ const STATE_PATHS = {
     svg.appendChild(frag);
   }
   renderHeaderChart();
+
+  // ---------- Sync status badge ----------
+  (function showSyncBadge(){
+    const badge = document.getElementById('sync-badge');
+    if(!badge) return;
+    const labels = {
+      firebase: { text: '☁️ Cloud sync — works across all your devices', cls: 'mode-firebase' },
+      native:   { text: '🔗 Claude sync — may not sync across separate devices', cls: 'mode-native' },
+      local:    { text: '📍 This device only — not syncing anywhere else', cls: 'mode-local' },
+      unknown:  { text: 'Sync status unknown', cls: '' }
+    };
+    const info = labels[syncMode] || labels.unknown;
+    badge.textContent = info.text;
+    if(info.cls) badge.classList.add(info.cls);
+  })();
 
   // ---------- Save As modal (hover over "© Thor 2026" on desktop, tap on touch devices) ----------
   const footerReveal = document.getElementById('footer-reveal');
