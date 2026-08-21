@@ -197,15 +197,15 @@
     background: linear-gradient(180deg, #1D5D73 0%, var(--ocean) 100%);
     overflow:hidden;
   }
-  /* On phones (portrait), an 8:5 landscape box reads as wide-and-short —
-     "horizontal" — against a tall vertical screen. Make the map noticeably
-     taller than wide here instead, so it feels sized for a phone. This
-     only changes the box's proportions; the JS view-fit/lock logic
-     already re-measures the container at runtime, so it adapts to
-     whatever ratio is set here with no other changes needed. */
-  @media (max-width: 480px){
-    .map-wrap{ padding-bottom: 125%; }
-  }
+  /* NOTE: no mobile override here anymore. An earlier "make it feel more
+     vertical on phones" change set this much taller (125%) on narrow
+     screens — but the fixed North America frame this map locks to has a
+     natural width:height ratio of about 1.78:1 (landscape). Forcing a
+     much taller box than that means fitBounds has to zoom OUT to fill
+     the extra height, which pulls in a strip of Canada above and area
+     south of Mexico that isn't wanted. 62.5% (8:5) stays close to that
+     natural ratio on every screen size, so the map shows close to just
+     the intended region without extra reveal. */
   #map{
     position:absolute;
     inset:0;
@@ -220,24 +220,6 @@
     background:rgba(255,253,248,0.85);
     font-size:10px;
   }
-
-  .drag-hint{
-    position:absolute;
-    top:12px;
-    left:12px;
-    background:rgba(18,60,77,0.85);
-    color:var(--paper);
-    font-size:11.5px;
-    font-weight:600;
-    padding:6px 11px;
-    border-radius:999px;
-    backdrop-filter: blur(2px);
-    pointer-events:none;
-    z-index:1000;
-    opacity:1;
-    transition:opacity .4s ease;
-  }
-  .drag-hint.hidden{ opacity:0; }
 
   .pin-icon{ cursor:grab; transform-origin:50% 100%; transition:filter .15s ease; }
   .pin-icon:active{ cursor:grabbing; }
@@ -706,7 +688,6 @@
     <div class="card map-card">
       <div class="map-wrap">
         <div id="map"></div>
-        <div class="drag-hint" id="drag-hint">🖐️ Drag to move around</div>
       </div>
       <div class="tooltip-panel" id="tooltip-panel">
         <span class="empty">Tap a pin to see who it is 👆</span>
@@ -769,7 +750,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-21-08</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-21-10</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -975,7 +956,6 @@
   const welcomeBanner = document.getElementById('welcome-banner');
   const welcomeBannerSub = document.getElementById('welcome-banner-sub');
   const welcomeBannerClose = document.getElementById('welcome-banner-close');
-  const dragHint = document.getElementById('drag-hint');
   const factModal = document.getElementById('fact-modal');
   const peopleList = document.getElementById('people-list');
   const listCount = document.getElementById('list-count');
@@ -1007,7 +987,14 @@
       zoomDelta: 0.5,          // each +/- click moves by half a level instead of a full one
       scrollWheelZoom: true,
       doubleClickZoom: true,
-      dragging: true,
+      dragging: false, // Pins are locked and the view is locked to a
+        // fixed North America frame — there's nothing left to pan TO, so
+        // dragging only got in the way: a touch that started on the map
+        // (e.g. someone trying to scroll the page past it) was being
+        // captured as a map-pan gesture instead of a page scroll. With
+        // dragging off, touches on the map fall through to the normal
+        // page scroll; tapping a pin and using the +/- zoom buttons
+        // still work fine, since neither depends on dragging.
       tap: false // legacy touch shim removed — it was firing a phantom
                  // double-tap on modern mobile browsers, which the OS
                  // read as "zoom in" and enlarged the whole page a
@@ -1033,8 +1020,6 @@
     map.attributionControl.setPosition('topright');
 
     L.control.zoom({ position: 'bottomleft' }).addTo(map);
-
-    map.on('movestart zoomstart', ()=> dragHint.classList.add('hidden'));
 
     // ---- Fix: keep the map's internal tile grid in sync with its actual
     // on-screen size ----
@@ -1074,7 +1059,6 @@
     let userInteracted = false;
     let isProgrammaticMove = false;
     map.on('movestart zoomstart', ()=>{
-      dragHint.classList.add('hidden');
       if(!isProgrammaticMove) userInteracted = true;
     });
     function fitToPins(){
@@ -1698,7 +1682,7 @@
         iconAnchor: [15, 40] // tip of the teardrop, matching the anchor point on the real coordinate
       });
 
-      const marker = L.marker([jLat, jLon], { icon, riseOnHover: true, draggable: true, autoPan: true });
+      const marker = L.marker([jLat, jLon], { icon, riseOnHover: true, draggable: false });
       marker.bindTooltip(
         `${escapeHtml(p.name)}<span class="sub">${escapeHtml(placeText(p))}</span>`,
         { className: 'custom-pin-tooltip', direction: 'top', offset: [0, -34], sticky: true }
@@ -1707,8 +1691,6 @@
         showTooltip(p, marker);
         map.flyTo(marker.getLatLng(), Math.max(map.getZoom(), FOCUS_ZOOM), { duration: 1 });
       });
-      marker.on('dragstart', ()=> marker.closeTooltip());
-      marker.on('dragend', ()=> savePinPosition(p, marker));
       marker.addTo(pinsLayer);
       markersById[p.id] = marker;
     });
@@ -1717,28 +1699,6 @@
     listCount.textContent = pins.length + (pins.length===1 ? ' person' : ' people');
     renderList();
     if(fitMapToPins) fitMapToPins();
-  }
-
-  // ---------- Manual pin fine-tuning (drag to adjust) ----------
-  // Geocoding a ZIP/postal code only ever gets you the center of that ZIP
-  // area, not a specific address — dragging lets anyone nudge a pin to the
-  // exact spot it belongs. The moved position is saved as that pin's new
-  // permanent location.
-  async function savePinPosition(p, marker){
-    const ll = marker.getLatLng();
-    const latest = await loadPinsOrKeep();
-    const basePins = latest.ok ? latest.data : pins;
-    const idx = basePins.findIndex(x=> x.id === p.id);
-    if(idx > -1){
-      basePins[idx].lat = ll.lat;
-      basePins[idx].lon = ll.lng;
-      basePins[idx].approx = false; // manually placed, so it's exact now
-    }
-    pins = basePins;
-    await savePins(pins);
-    renderPins();
-    const updated = pins.find(x=> x.id === p.id);
-    if(updated) showTooltip(updated, markersById[p.id]);
   }
 
   function placeText(p){
@@ -1964,12 +1924,11 @@
 
   // ---------- Zoom + Pan ----------
   // Leaflet handles all of this natively now — scroll-wheel zoom, pinch
-  // zoom, double-click zoom, and drag-to-pan are all built in (configured
-  // when the map was created in initMap()). Nothing custom needed here.
-
-  // Fade the drag hint out on its own after a few seconds, in case someone
-  // never actually drags — it shouldn't linger over the map forever.
-  setTimeout(()=> dragHint.classList.add('hidden'), 5000);
+  // zoom, and double-click zoom are built in (configured when the map
+  // was created in initMap()). Dragging/panning is intentionally off —
+  // the view is locked to a fixed frame, so there's nowhere to pan to,
+  // and leaving it off lets touches on the map scroll the page normally
+  // instead of being captured as a pan gesture.
 
   // periodic light polling so the group sees new pins without reloading
   setInterval(async ()=>{
