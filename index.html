@@ -758,7 +758,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-21-11</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-21-12</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -1095,6 +1095,15 @@
     // leaves it room to fully show.
     const FRAME_FIT_OPTIONS = { paddingTopLeft: [10, 45], paddingBottomRight: [10, 15] };
     function applyFrameFit(animate){
+      // Re-measure the container size FIRST. iOS Safari's address bar
+      // shows/hides as the page is scrolled, which changes how much
+      // vertical space the map actually has on screen — but Leaflet only
+      // caches a container size and doesn't re-check it on its own here.
+      // Without this, "reset" was fitting the bounds against whatever
+      // size happened to be measured back when the page first loaded,
+      // not the map's real current size — which is exactly what made the
+      // button land on a wrong, partial-looking view.
+      syncMapSize();
       isProgrammaticMove = true;
       map.setMinZoom(null); // clear any previous lock before re-measuring,
       map.setMaxBounds(null); // or the old lock can fight the new fitBounds call
