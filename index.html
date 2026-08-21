@@ -41,19 +41,11 @@
     background: radial-gradient(circle at 20% 0%, #1a5266 0%, var(--ocean-deep) 60%);
     color:var(--ink);
     min-height:100vh;
-    padding:10px 4px 30px;
+    padding:20px 8px 60px;
   }
   #app{
     max-width:560px;
     margin:0 auto;
-    zoom:0.5; /* shrinks the whole dashboard (header, cards, map, list,
-                 fonts) uniformly to 50%. Using CSS `zoom` rather than
-                 `transform:scale` on purpose: `zoom` is a real WebKit/iOS
-                 Safari layout feature (like native page zoom), so it
-                 also correctly rescales touch/click coordinates for
-                 Leaflet's map — `transform:scale` looks the same
-                 visually but silently breaks map dragging/tapping
-                 because it only repaints, it doesn't change layout. */
   }
   .pin-count-corner{
     position:absolute;
@@ -184,12 +176,28 @@
     grid-template-columns: 1fr;
     gap:18px;
   }
+  .layout-col{
+    min-width:0; /* This wrapper (holding the form + list cards) is the
+      second column item in the .layout grid. It had no class before, so
+      it never got the min-width:0 fix applied to .card — its own
+      content-based minimum size (from unbroken text somewhere inside
+      the form/list cards) was forcing the entire grid column, and
+      therefore both cards, wider than the screen. This was the actual
+      cause of the page requiring pinch-zoom/horizontal scroll on
+      iPhone. */
+  }
   .card{
     background:var(--paper);
     border:1px solid var(--card-border);
     border-radius:18px;
     box-shadow: 0 14px 32px rgba(4,20,26,0.35);
     overflow:hidden;
+    min-width:0; /* Grid items default to min-width:auto, which lets any
+      unbroken long content inside (a long name, address, etc.) force
+      this card wider than its grid column — pushing the whole page
+      wider than the screen on a phone. This override is the standard
+      fix: it lets the card actually shrink to the column's width and
+      wrap/ellipsis its own content instead of blowing out the page. */
   }
 
   .map-card{
@@ -739,7 +747,7 @@
       </div>
     </div>
 
-    <div>
+    <div class="layout-col">
       <div class="card form-card">
         <details class="collapsible">
           <summary>
@@ -795,7 +803,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-21-02</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-21-04</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
