@@ -120,8 +120,8 @@
     color:#B9D3DB;
     font-size: clamp(11.5px, 3.3vw, 15px);
     margin:0;
-    max-width:640px;
-    white-space:nowrap;
+    max-width:90%;
+    white-space:normal;
     margin-inline:auto;
   }
 
@@ -1077,6 +1077,18 @@
       hasFitted = true; // done for good — this never re-triggers, including
                          // on later background syncs bringing in new pins
       isProgrammaticMove = false;
+
+      // Lock the view to this frame: the container size is confirmed now
+      // (fitBounds just used it), so it's safe to apply maxBounds/minZoom
+      // here — this is the "later, once container size is confirmed"
+      // moment referenced in the comment above. This is what actually
+      // keeps the rest of the world from ever being scrolled/zoomed into.
+      const lockedZoom = map.getZoom();
+      map.setMinZoom(lockedZoom);
+      // Pad the frame slightly so it doesn't feel clipped right at the
+      // edge, but not enough to reveal other continents.
+      map.setMaxBounds(NORTH_AMERICA_FRAME.pad(0.15));
+      map.options.maxBoundsViscosity = 1.0; // hard stop, no rubber-banding past the edge
     }
     fitMapToPins = fitToPins;
     requestAnimationFrame(()=>{ syncMapSize(); fitToPins(); });
