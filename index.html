@@ -787,7 +787,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-19-18</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-21-01</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -1064,25 +1064,28 @@
     const NORTH_AMERICA_FRAME = L.latLngBounds([[52, -128], [24, -66]]); // southern Canada
       // (covers Calgary) down to just north of the Mexico border, coast to coast
     let userInteracted = false;
-    let hasFitted = false;
     let isProgrammaticMove = false;
     map.on('movestart zoomstart', ()=>{
       dragHint.classList.add('hidden');
       if(!isProgrammaticMove) userInteracted = true;
     });
     function fitToPins(){
-      if(!map || userInteracted || hasFitted) return;
+      // NOTE: this deliberately re-runs at every scheduled sync checkpoint
+      // (rAF, 250ms, 800ms, fonts.ready) instead of only once. On iPhone,
+      // the container's on-screen size can still be settling across those
+      // checkpoints, so re-fitting + re-locking fresh each time (using
+      // whatever the CURRENT real size is) lets it self-correct. A single
+      // one-shot fit was baking in whatever size happened to be measured
+      // first, which was sometimes still wrong (too small), producing the
+      // "cut off / zoomed wrong" crop. Once the user pans or zooms
+      // manually, userInteracted stops this for good.
+      if(!map || userInteracted) return;
       isProgrammaticMove = true;
+      map.setMinZoom(null); // clear any previous lock before re-measuring,
+      map.setMaxBounds(null); // or the old lock can fight the new fitBounds call
       map.fitBounds(NORTH_AMERICA_FRAME, { animate:false });
-      hasFitted = true; // done for good — this never re-triggers, including
-                         // on later background syncs bringing in new pins
       isProgrammaticMove = false;
 
-      // Lock the view to this frame: the container size is confirmed now
-      // (fitBounds just used it), so it's safe to apply maxBounds/minZoom
-      // here — this is the "later, once container size is confirmed"
-      // moment referenced in the comment above. This is what actually
-      // keeps the rest of the world from ever being scrolled/zoomed into.
       const lockedZoom = map.getZoom();
       map.setMinZoom(lockedZoom);
       // Pad the frame slightly so it doesn't feel clipped right at the
