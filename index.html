@@ -220,6 +220,14 @@
     background:rgba(255,253,248,0.85);
     font-size:10px;
   }
+  .reset-view-control{
+    margin-top:8px !important; /* small gap under the +/- zoom bar */
+  }
+  .reset-view-control a{
+    font-size:17px;
+    font-weight:700;
+    line-height:26px !important;
+  }
 
   .pin-icon{ cursor:grab; transform-origin:50% 100%; transition:filter .15s ease; }
   .pin-icon:active{ cursor:grabbing; }
@@ -750,7 +758,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-21-10</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-21-11</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -1021,6 +1029,24 @@
 
     L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
+    // "Show full map" button — sits right below the +/- zoom control in
+    // the same corner. Needed now that dragging is off (see initMap
+    // options above): once someone zooms in on a pin, there's no way to
+    // pan back out to see everyone else, so this resets the view back to
+    // the full locked North America frame in one tap.
+    const resetViewControl = L.control({ position: 'bottomleft' });
+    resetViewControl.onAdd = function(){
+      const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control reset-view-control');
+      div.innerHTML = '<a href="#" title="Show full map" role="button" aria-label="Show full map">⤢</a>';
+      L.DomEvent.disableClickPropagation(div);
+      L.DomEvent.on(div, 'click', function(e){
+        L.DomEvent.preventDefault(e);
+        resetToFullView();
+      });
+      return div;
+    };
+    resetViewControl.addTo(map);
+
     // ---- Fix: keep the map's internal tile grid in sync with its actual
     // on-screen size ----
     // Leaflet measures the #map container's size once, at the moment
@@ -1061,6 +1087,34 @@
     map.on('movestart zoomstart', ()=>{
       if(!isProgrammaticMove) userInteracted = true;
     });
+    // Pin icons are 30x42px and anchored near their bottom tip (see
+    // renderPins below), so a pin can stick up to ~40px above its actual
+    // coordinate. A pin whose coordinate sits right at the frame's edge
+    // was getting its top clipped off by the map's own edge — this pixel
+    // padding (heavier on top, where pins extend upward from their point)
+    // leaves it room to fully show.
+    const FRAME_FIT_OPTIONS = { paddingTopLeft: [10, 45], paddingBottomRight: [10, 15] };
+    function applyFrameFit(animate){
+      isProgrammaticMove = true;
+      map.setMinZoom(null); // clear any previous lock before re-measuring,
+      map.setMaxBounds(null); // or the old lock can fight the new fitBounds call
+      map.fitBounds(NORTH_AMERICA_FRAME, Object.assign({ animate: !!animate }, FRAME_FIT_OPTIONS));
+      isProgrammaticMove = false;
+
+      const lockedZoom = map.getZoom();
+      // Sanity guard: a container that's still 0×0 or otherwise not
+      // ready yields an unreasonably small zoom (e.g. whole-world level).
+      // Skip locking to that bad reading — leave it unlocked so the NEXT
+      // scheduled checkpoint gets another chance, instead of permanently
+      // freezing the map on a "whole world" view.
+      if(!isFinite(lockedZoom) || lockedZoom < 2.5) return false;
+      map.setMinZoom(lockedZoom);
+      // Pad the frame slightly so it doesn't feel clipped right at the
+      // edge, but not enough to reveal other continents.
+      map.setMaxBounds(NORTH_AMERICA_FRAME.pad(0.15));
+      map.options.maxBoundsViscosity = 1.0; // hard stop, no rubber-banding past the edge
+      return true;
+    }
     function fitToPins(){
       // NOTE: this deliberately re-runs at every scheduled sync checkpoint
       // (rAF, 250ms, 800ms, fonts.ready) instead of only once. On iPhone,
@@ -1072,24 +1126,15 @@
       // "cut off / zoomed wrong" crop. Once the user pans or zooms
       // manually, userInteracted stops this for good.
       if(!map || userInteracted) return;
-      isProgrammaticMove = true;
-      map.setMinZoom(null); // clear any previous lock before re-measuring,
-      map.setMaxBounds(null); // or the old lock can fight the new fitBounds call
-      map.fitBounds(NORTH_AMERICA_FRAME, { animate:false });
-      isProgrammaticMove = false;
-
-      const lockedZoom = map.getZoom();
-      // Sanity guard: a container that's still 0×0 or otherwise not
-      // ready yields an unreasonably small zoom (e.g. whole-world level).
-      // Skip locking to that bad reading — leave it unlocked so the NEXT
-      // scheduled checkpoint gets another chance, instead of permanently
-      // freezing the map on a "whole world" view.
-      if(!isFinite(lockedZoom) || lockedZoom < 2.5) return;
-      map.setMinZoom(lockedZoom);
-      // Pad the frame slightly so it doesn't feel clipped right at the
-      // edge, but not enough to reveal other continents.
-      map.setMaxBounds(NORTH_AMERICA_FRAME.pad(0.15));
-      map.options.maxBoundsViscosity = 1.0; // hard stop, no rubber-banding past the edge
+      applyFrameFit(false);
+    }
+    // Explicit reset, wired to the "show full map" button above — runs
+    // regardless of userInteracted, since the whole point is to undo
+    // whatever zoom/position the person is currently at.
+    function resetToFullView(){
+      if(!map) return;
+      applyFrameFit(true);
+      userInteracted = false;
     }
     fitMapToPins = fitToPins;
     requestAnimationFrame(()=>{ syncMapSize(); fitToPins(); });
