@@ -758,7 +758,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-21-12</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-08-21-14</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -1118,9 +1118,20 @@
       // freezing the map on a "whole world" view.
       if(!isFinite(lockedZoom) || lockedZoom < 2.5) return false;
       map.setMinZoom(lockedZoom);
-      // Pad the frame slightly so it doesn't feel clipped right at the
-      // edge, but not enough to reveal other continents.
-      map.setMaxBounds(NORTH_AMERICA_FRAME.pad(0.15));
+      // Lock panning to what's ACTUALLY on screen right now (with a
+      // small buffer), not a separately-guessed box. The fitBounds call
+      // above used pixel padding to leave room for pin icons — on a
+      // narrow phone screen, that padding is a much bigger fraction of
+      // the map's size than on desktop, so the area it actually reveals
+      // can extend past a fixed-percentage guess like NORTH_AMERICA_
+      // FRAME.pad(0.15). When that happened, maxBounds immediately
+      // snapped the just-set view back to fit inside a box smaller than
+      // what was actually shown — which is exactly what made the "show
+      // full map" button land on a cropped, partial-looking result
+      // right after resetting. Basing it on getBounds() instead means
+      // it can never disagree with what fitBounds just produced, on any
+      // screen size.
+      map.setMaxBounds(map.getBounds().pad(0.05));
       map.options.maxBoundsViscosity = 1.0; // hard stop, no rubber-banding past the edge
       return true;
     }
@@ -1142,7 +1153,16 @@
     // whatever zoom/position the person is currently at.
     function resetToFullView(){
       if(!map) return;
-      applyFrameFit(true);
+      // animate:false is deliberate here, not just a style choice.
+      // applyFrameFit reads the map's new zoom/bounds right after calling
+      // fitBounds, to lock panning to them. With animate:true, Leaflet
+      // runs the zoom transition on a LATER animation frame — so those
+      // reads were happening before the animation had actually moved
+      // anything, capturing the OLD zoomed-in position instead of the
+      // new full-frame one. That silently re-locked the view back to
+      // roughly where it already was, which is exactly why the button
+      // looked like it produced a "partial" map instead of the full one.
+      applyFrameFit(false);
       userInteracted = false;
     }
     fitMapToPins = fitToPins;
