@@ -216,52 +216,6 @@
     background: linear-gradient(180deg, #1D5D73 0%, var(--ocean) 100%);
     font-family:'Inter',sans-serif;
   }
-  /* Custom pan scrollbars: dragging on the Leaflet map itself is
-     intentionally off (see initMap), so once someone zooms in on a pin
-     there's otherwise no way to move around except the reset button.
-     These are plain draggable bars (no pinch/drag-on-map gestures) that
-     only appear once the map is zoomed in past the locked full view. */
-  .map-scrollbar{
-    position:absolute;
-    z-index:650; /* above tiles/pins, below popups */
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .15s ease;
-  }
-  .map-scrollbar.visible{
-    opacity:1;
-    pointer-events:auto;
-  }
-  .map-scrollbar-h{
-    left:74px; right:16px; bottom:6px; height:14px;
-    background:rgba(11,44,57,0.55);
-    border:1px solid rgba(255,255,255,0.5);
-    border-radius:8px;
-    box-shadow:0 1px 4px rgba(0,0,0,0.35);
-  }
-  .map-scrollbar-v{
-    top:30px; bottom:16px; right:6px; width:14px;
-    background:rgba(11,44,57,0.55);
-    border:1px solid rgba(255,255,255,0.5);
-    border-radius:8px;
-    box-shadow:0 1px 4px rgba(0,0,0,0.35);
-  }
-  .map-scrollbar-thumb{
-    position:absolute;
-    background:var(--gold);
-    border:1px solid rgba(11,44,57,0.6);
-    border-radius:7px;
-    cursor:grab;
-    touch-action:none;
-    box-shadow:0 1px 2px rgba(0,0,0,0.3);
-  }
-  .map-scrollbar-thumb:active{ cursor:grabbing; filter:brightness(1.1); }
-  .map-scrollbar-h .map-scrollbar-thumb{ top:1px; bottom:1px; left:0; width:30%; min-width:36px; }
-  .map-scrollbar-v .map-scrollbar-thumb{ left:1px; right:1px; top:0; height:30%; min-height:36px; }
-  @media(max-width: 859px){
-    .map-scrollbar-h{ left:60px; height:16px; }
-    .map-scrollbar-v{ width:16px; }
-  }
   .leaflet-control-attribution{
     background:rgba(255,253,248,0.85);
     font-size:10px;
@@ -742,12 +696,6 @@
     <div class="card map-card">
       <div class="map-wrap">
         <div id="map"></div>
-        <div class="map-scrollbar map-scrollbar-h" id="mapScrollH" aria-hidden="true">
-          <div class="map-scrollbar-thumb" id="mapScrollThumbH"></div>
-        </div>
-        <div class="map-scrollbar map-scrollbar-v" id="mapScrollV" aria-hidden="true">
-          <div class="map-scrollbar-thumb" id="mapScrollThumbV"></div>
-        </div>
       </div>
       <div class="tooltip-panel" id="tooltip-panel">
         <span class="empty">Tap a pin to see who it is 👆</span>
@@ -1136,141 +1084,9 @@
       // (covers Calgary) down to just north of the Mexico border, coast to coast
     let userInteracted = false;
     let isProgrammaticMove = false;
-    let currentLockedZoom = null; // the zoom level of the locked full North
-      // America view — used to tell "still at the locked view" (no
-      // scrollbars needed) apart from "zoomed in on a pin" (scrollbars on)
     map.on('movestart zoomstart', ()=>{
       if(!isProgrammaticMove) userInteracted = true;
     });
-
-    // ---- Custom pan scrollbars ----
-    // Dragging is off on the map itself (see the `dragging:false` option
-    // above), so once someone zooms in on a pin there'd otherwise be no
-    // way to move around except the "show full map" reset button. These
-    // bars are a deliberate, separate affordance: plain draggable
-    // scrollbars, not a drag/pinch gesture on the map tiles themselves.
-    const scrollH = document.getElementById('mapScrollH');
-    const scrollThumbH = document.getElementById('mapScrollThumbH');
-    const scrollV = document.getElementById('mapScrollV');
-    const scrollThumbV = document.getElementById('mapScrollThumbV');
-
-    function updateScrollbars(){
-      if(!map || !scrollH || !scrollV) return;
-      const zoom = map.getZoom();
-      // Deliberately NOT gated on currentLockedZoom here. That value is
-      // only captured once applyFrameFit's timing-sensitive container-size
-      // checks succeed (see the extensive notes on that race elsewhere in
-      // this file) — on a slow first paint it can still be null by the
-      // time someone taps a pin, which would keep the bars off forever.
-      // Comparing the actual projected content size against the actual
-      // viewport size below is self-contained and self-correcting: it
-      // doesn't depend on that earlier capture succeeding at all.
-      const bounds = map.getMaxBounds();
-      if(!bounds || !bounds.isValid()){
-        scrollH.classList.remove('visible');
-        scrollV.classList.remove('visible');
-        return;
-      }
-      const size = map.getSize();
-      const nwPx = map.project(bounds.getNorthWest(), zoom);
-      const sePx = map.project(bounds.getSouthEast(), zoom);
-      const totalW = sePx.x - nwPx.x;
-      const totalH = sePx.y - nwPx.y;
-      const centerPx = map.project(map.getCenter(), zoom);
-      const viewNWx = centerPx.x - size.x / 2;
-      const viewNWy = centerPx.y - size.y / 2;
-
-      // Threshold, not a bare ">": maxBounds is the locked full-view
-      // bounds padded by 5% on each edge (see applyFrameFit), so even at
-      // the default zoomed-out view totalW/totalH are always slightly
-      // bigger than the viewport (~10% bigger, frac ~0.91) — that's just
-      // the pad, not something to actually scroll to. 0.8 sits safely
-      // below that pad-only ratio but well above what any real zoom-in
-      // on a pin produces, so it only fires for genuine zoom-ins.
-      const SHOW_THRESHOLD = 0.8;
-
-      if(size.x / totalW < SHOW_THRESHOLD){
-        const frac = Math.min(1, size.x / totalW);
-        let leftFrac = (viewNWx - nwPx.x) / (totalW - size.x);
-        leftFrac = Math.max(0, Math.min(1, leftFrac));
-        scrollH.classList.add('visible');
-        scrollThumbH.style.width = (frac * 100) + '%';
-        scrollThumbH.style.left = (leftFrac * (100 - frac * 100)) + '%';
-      } else {
-        scrollH.classList.remove('visible');
-      }
-
-      if(size.y / totalH < SHOW_THRESHOLD){
-        const frac = Math.min(1, size.y / totalH);
-        let topFrac = (viewNWy - nwPx.y) / (totalH - size.y);
-        topFrac = Math.max(0, Math.min(1, topFrac));
-        scrollV.classList.add('visible');
-        scrollThumbV.style.height = (frac * 100) + '%';
-        scrollThumbV.style.top = (topFrac * (100 - frac * 100)) + '%';
-      } else {
-        scrollV.classList.remove('visible');
-      }
-    }
-
-    // Dragging a thumb pans the map along that one axis, clamped to the
-    // same locked maxBounds that already constrain everything else — so
-    // this can never scroll past the intended North America frame.
-    function setupScrollbarDrag(thumbEl, trackEl, axis){
-      if(!thumbEl || !trackEl) return;
-      thumbEl.addEventListener('pointerdown', function(e){
-        if(!map) return;
-        e.preventDefault();
-        e.stopPropagation();
-        try{ thumbEl.setPointerCapture(e.pointerId); }catch(err){}
-        const trackRect = trackEl.getBoundingClientRect();
-        const zoom = map.getZoom();
-        const bounds = map.getMaxBounds();
-        if(!bounds || !bounds.isValid()) return;
-        const size = map.getSize();
-        const nwPx = map.project(bounds.getNorthWest(), zoom);
-        const sePx = map.project(bounds.getSouthEast(), zoom);
-        const startClientX = e.clientX;
-        const startClientY = e.clientY;
-        const startCenterPx = map.project(map.getCenter(), zoom);
-
-        function onMove(ev){
-          if(axis === 'x'){
-            const trackW = trackRect.width || 1;
-            const totalW = sePx.x - nwPx.x;
-            const deltaContent = (ev.clientX - startClientX) * (totalW / trackW);
-            const minCenterX = nwPx.x + size.x / 2;
-            const maxCenterX = sePx.x - size.x / 2;
-            let newCenterX = startCenterPx.x + deltaContent;
-            newCenterX = Math.max(minCenterX, Math.min(maxCenterX, newCenterX));
-            const target = map.unproject(L.point(newCenterX, startCenterPx.y), zoom);
-            map.setView(target, zoom, { animate:false });
-          } else {
-            const trackH = trackRect.height || 1;
-            const totalH = sePx.y - nwPx.y;
-            const deltaContent = (ev.clientY - startClientY) * (totalH / trackH);
-            const minCenterY = nwPx.y + size.y / 2;
-            const maxCenterY = sePx.y - size.y / 2;
-            let newCenterY = startCenterPx.y + deltaContent;
-            newCenterY = Math.max(minCenterY, Math.min(maxCenterY, newCenterY));
-            const target = map.unproject(L.point(startCenterPx.x, newCenterY), zoom);
-            map.setView(target, zoom, { animate:false });
-          }
-        }
-        function onUp(ev){
-          try{ thumbEl.releasePointerCapture(e.pointerId); }catch(err){}
-          document.removeEventListener('pointermove', onMove);
-          document.removeEventListener('pointerup', onUp);
-        }
-        document.addEventListener('pointermove', onMove);
-        document.addEventListener('pointerup', onUp);
-      });
-    }
-    setupScrollbarDrag(scrollThumbH, scrollH, 'x');
-    setupScrollbarDrag(scrollThumbV, scrollV, 'y');
-    // 'zoom'/'move' (not just their -end variants) so the bars fade in
-    // and track live while a flyTo animation to a tapped pin is still
-    // playing, instead of only appearing once it finishes.
-    map.on('zoom move zoomend moveend', updateScrollbars);
     // Pin icons are 30x42px and anchored near their bottom tip (see
     // renderPins below), so a pin can stick up to ~40px above its actual
     // coordinate. A pin whose coordinate sits right at the frame's edge
@@ -1300,25 +1116,8 @@
       // Skip locking to that bad reading — leave it unlocked so the NEXT
       // scheduled checkpoint gets another chance, instead of permanently
       // freezing the map on a "whole world" view.
-      //
-      // But fitBounds() a few lines up has ALREADY moved the camera to
-      currentLockedZoom = lockedZoom;
-      // that bad whole-world zoom by this point — bailing out here used
-      // to leave that on screen until a later checkpoint happened to get
-      // a good measurement. If none ever did (some embedded/preview
-      // contexts never report a real container size), the map was stuck
-      // showing the whole planet with no way to recover. Snap back to
-      // the same fixed US-centered view used at startup instead, so the
-      // visible map is never worse than that — a later successful
-      // checkpoint still replaces this with the precise locked fit.
-      if(!isFinite(lockedZoom) || lockedZoom < 2.5){
-        isProgrammaticMove = true;
-        map.setView(US_CENTER, US_DEFAULT_ZOOM, { animate:false });
-        isProgrammaticMove = false;
-        return false;
-      }
+      if(!isFinite(lockedZoom) || lockedZoom < 2.5) return false;
       map.setMinZoom(lockedZoom);
-      updateScrollbars(); // we're back at the locked full view — hide the bars
       // Lock panning to what's ACTUALLY on screen right now (with a
       // small buffer), not a separately-guessed box. The fitBounds call
       // above used pixel padding to leave room for pin icons — on a
