@@ -227,6 +227,29 @@
     font-weight:700;
     line-height:26px !important;
   }
+  /* ✋ Hand (pan) button — turns map dragging on/off */
+  .pan-control{ margin-top:8px !important; }
+  .pan-control a{
+    display:flex !important; align-items:center; justify-content:center;
+    color:var(--ink) !important;
+  }
+  .pan-control a svg{ width:17px; height:17px; display:block; }
+  .pan-control.on a{
+    background:var(--gold) !important;
+    color:#fff !important;
+  }
+  #map.pan-on, #map.pan-on .leaflet-interactive{ cursor:grab; }
+  #map.pan-on.leaflet-dragging, #map.pan-on.leaflet-dragging *{ cursor:grabbing !important; }
+  .pan-hint{
+    position:absolute; left:50%; top:10px; transform:translateX(-50%);
+    z-index:850; pointer-events:none;
+    background:rgba(15,30,34,0.82); color:#fff;
+    font-size:12px; font-weight:600;
+    padding:5px 11px; border-radius:999px;
+    opacity:0; transition:opacity .3s ease;
+    white-space:nowrap;
+  }
+  .pan-hint.show{ opacity:1; }
 
   .pin-icon{ cursor:grab; transform-origin:50% 100%; transition:filter .15s ease; }
   .pin-icon:active{ cursor:grabbing; }
@@ -968,7 +991,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-10-15-05</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-10-15-06</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -1290,6 +1313,57 @@
     };
     resetViewControl.addTo(map);
 
+    // ✋ Hand (pan) button — sits under the "show full map" button.
+    // Map dragging stays OFF by default so a finger on the map still scrolls
+    // the page (see the dragging note in the map options above). Tapping the
+    // hand turns dragging ON so the map can be moved around anywhere;
+    // tapping it again turns it back off. The ⤢ button still snaps back to
+    // the full North America view at any time.
+    let panOn = false;
+    const HAND_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-4 0v1"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>';
+    const panHint = document.createElement('div');
+    panHint.className = 'pan-hint';
+    document.getElementById('map').appendChild(panHint);
+    let panHintTimer = null;
+    function flashPanHint(text){
+      panHint.textContent = text;
+      panHint.classList.add('show');
+      clearTimeout(panHintTimer);
+      panHintTimer = setTimeout(()=> panHint.classList.remove('show'), 2200);
+    }
+    const panControl = L.control({ position: 'bottomleft' });
+    let panBtnWrap = null, panBtn = null;
+    panControl.onAdd = function(){
+      panBtnWrap = L.DomUtil.create('div', 'leaflet-bar leaflet-control pan-control');
+      panBtnWrap.innerHTML = '<a href="#" role="button" aria-pressed="false" title="Move the map with your hand" aria-label="Move the map with your hand">' + HAND_SVG + '</a>';
+      panBtn = panBtnWrap.querySelector('a');
+      L.DomEvent.disableClickPropagation(panBtnWrap);
+      L.DomEvent.on(panBtnWrap, 'click', function(e){
+        L.DomEvent.preventDefault(e);
+        setPanMode(!panOn);
+      });
+      return panBtnWrap;
+    };
+    panControl.addTo(map);
+    function setPanMode(on){
+      panOn = !!on;
+      const mapEl = document.getElementById('map');
+      if(panOn){
+        // Free movement: lift the edge lock so the map can go anywhere.
+        map.setMaxBounds(null);
+        map.dragging.enable();
+        mapEl.classList.add('pan-on');
+        flashPanHint('✋ Drag to move the map · tap ✋ again to stop');
+      } else {
+        map.dragging.disable();
+        mapEl.classList.remove('pan-on');
+        flashPanHint('Map moving is off');
+      }
+      panBtnWrap.classList.toggle('on', panOn);
+      panBtn.setAttribute('aria-pressed', panOn ? 'true' : 'false');
+      panBtn.title = panOn ? 'Stop moving the map' : 'Move the map with your hand';
+    }
+
     // ---- Fix: keep the map's internal tile grid in sync with its actual
     // on-screen size ----
     // Leaflet measures the #map container's size once, at the moment
@@ -1407,6 +1481,7 @@
       // looked like it produced a "partial" map instead of the full one.
       applyFrameFit(false);
       userInteracted = false;
+      if(panOn) map.setMaxBounds(null); // hand still on: keep free movement after the reset
     }
     fitMapToPins = fitToPins;
     requestAnimationFrame(()=>{ syncMapSize(); fitToPins(); });
@@ -2769,7 +2844,7 @@
     if(!base.width || !base.height) return;
     const W = base.width, H = base.height;
     const pins = rectsOf('#map .leaflet-marker-pane .pin-icon', base, 4);
-    const controls = rectsOf('#map .leaflet-control-zoom, #map .reset-view-control, #map .leaflet-control-attribution, #trip-chip.visible', base, 4);
+    const controls = rectsOf('#map .leaflet-control-zoom, #map .reset-view-control, #map .pan-control, #map .leaflet-control-attribution, #trip-chip.visible', base, 4);
     const grid = buildLandGrid(W, H, 6);
     const placed = [];
     const step = 6, gap = 6;
@@ -2904,6 +2979,8 @@
     const pane = document.querySelector('#map .leaflet-marker-pane');
     if(!pane){ setTimeout(watchPins, 500); return; }
     new MutationObserver(scheduleRelayout).observe(pane, { childList:true, subtree:true, attributes:true, attributeFilter:['style','class'] });
+    // Moving the map with the hand shifts where pins, water and land are on screen.
+    if(window.__moMainMap && window.__moMainMap.on) window.__moMainMap.on('moveend zoomend', scheduleRelayout);
     scheduleRelayout();
   })();
 
