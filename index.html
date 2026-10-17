@@ -219,25 +219,29 @@
     background:rgba(255,253,248,0.85);
     font-size:10px;
   }
-  .reset-view-control{
-    margin-top:8px !important; /* small gap under the +/- zoom bar */
+  /* ---- Map toolbar (under the map, so the map itself stays clear) ---- */
+  .map-toolbar{
+    display:flex; align-items:center; gap:6px;
+    padding:8px 10px;
+    border-top:1px solid var(--card-border);
+    background:#F7F1E3;
   }
-  .reset-view-control a{
-    font-size:17px;
-    font-weight:700;
-    line-height:26px !important;
+  .tb-btn{
+    width:40px; height:36px;
+    display:flex; align-items:center; justify-content:center;
+    border:1.5px solid var(--card-border);
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:9px;
+    font-size:20px; font-weight:700; line-height:1;
+    font-family:'Inter',sans-serif;
+    cursor:pointer; padding:0;
+    -webkit-tap-highlight-color:transparent;
   }
-  /* ✋ Hand (pan) button — turns map dragging on/off */
-  .pan-control{ margin-top:8px !important; }
-  .pan-control a{
-    display:flex !important; align-items:center; justify-content:center;
-    color:var(--ink) !important;
-  }
-  .pan-control a svg{ width:17px; height:17px; display:block; }
-  .pan-control.on a{
-    background:var(--gold) !important;
-    color:#fff !important;
-  }
+  .tb-btn:active{ transform:scale(0.95); }
+  .tb-btn svg{ width:18px; height:18px; display:block; }
+  .tb-btn.on{ background:var(--gold); border-color:var(--gold); color:#fff; }
+  .tb-spacer{ flex:1; }
   #map.pan-on, #map.pan-on .leaflet-interactive{ cursor:grab; }
   #map.pan-on.leaflet-dragging, #map.pan-on.leaflet-dragging *{ cursor:grabbing !important; }
   .pan-hint{
@@ -257,7 +261,7 @@
   .pin-icon svg{ display:block; overflow:visible; }
   .pin-icon.pin-drop{ animation: pin-drop-in .6s cubic-bezier(.34,1.6,.5,1); }
   @keyframes pin-drop-in{
-    0%{ transform: translateY(-60px); }
+    0%{ transform: translateY(-24px); }
     100%{ transform: translateY(0); }
   }
 
@@ -774,10 +778,8 @@
   }
   .trip-card.sm .trip-card-credit{ right:10px; font-size:5.5px; }
   .trip-chip{
-    position:absolute;
-    left:8px; top:8px;
-    z-index:800;
     display:none;
+    flex-shrink:0;
     background:#FFFDF8;
     border:1px solid #D9CFB8;
     border-radius:999px;
@@ -893,6 +895,13 @@
       <div class="map-wrap">
         <div id="map"></div>
         <div class="trip-layer" id="trip-layer" aria-live="polite"></div>
+      </div>
+      <div class="map-toolbar" id="map-toolbar">
+        <button type="button" class="tb-btn" id="tb-zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
+        <button type="button" class="tb-btn" id="tb-zoom-out" title="Zoom out" aria-label="Zoom out">&minus;</button>
+        <button type="button" class="tb-btn" id="tb-reset" title="Show full map" aria-label="Show full map">&#10530;</button>
+        <button type="button" class="tb-btn" id="tb-pan" aria-pressed="false" title="Move the map with your hand" aria-label="Move the map with your hand"></button>
+        <span class="tb-spacer"></span>
         <button type="button" class="trip-chip" id="trip-chip"></button>
       </div>
       <div class="tooltip-panel" id="tooltip-panel">
@@ -987,12 +996,12 @@
 
   <footer class="footer">
     <div class="footer-reveal" id="footer-reveal">
-      <span class="footer-copyright" id="footer-copyright">&copy; Thor 2026</span>
+      <span class="footer-copyright" id="footer-copyright">&copy; 2026 Thor</span>
       <button type="button" class="save-reveal-btn" id="save-reveal-btn">
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-10-17-04</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-10-17-06</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -1292,34 +1301,15 @@
 
     // Move the required OpenStreetMap attribution out of the bottom-right
     // corner, since that's where the pin-count box now lives.
-    map.attributionControl.setPosition('topright');
+    map.attributionControl.setPosition('bottomright');
+    map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
 
-    L.control.zoom({ position: 'bottomleft' }).addTo(map);
+    // Zoom / reset / hand buttons live in the toolbar under the map (not on
+    // the map), so the whole map area is free for pins and vacation cards.
+    document.getElementById('tb-zoom-in').addEventListener('click', ()=> map.zoomIn());
+    document.getElementById('tb-zoom-out').addEventListener('click', ()=> map.zoomOut());
+    document.getElementById('tb-reset').addEventListener('click', ()=> resetToFullView());
 
-    // "Show full map" button — sits right below the +/- zoom control in
-    // the same corner. Needed now that dragging is off (see initMap
-    // options above): once someone zooms in on a pin, there's no way to
-    // pan back out to see everyone else, so this resets the view back to
-    // the full locked North America frame in one tap.
-    const resetViewControl = L.control({ position: 'bottomleft' });
-    resetViewControl.onAdd = function(){
-      const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control reset-view-control');
-      div.innerHTML = '<a href="#" title="Show full map" role="button" aria-label="Show full map">⤢</a>';
-      L.DomEvent.disableClickPropagation(div);
-      L.DomEvent.on(div, 'click', function(e){
-        L.DomEvent.preventDefault(e);
-        resetToFullView();
-      });
-      return div;
-    };
-    resetViewControl.addTo(map);
-
-    // ✋ Hand (pan) button — sits under the "show full map" button.
-    // Map dragging stays OFF by default so a finger on the map still scrolls
-    // the page (see the dragging note in the map options above). Tapping the
-    // hand turns dragging ON so the map can be moved around anywhere;
-    // tapping it again turns it back off. The ⤢ button still snaps back to
-    // the full North America view at any time.
     let panOn = false;
     const HAND_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 11V6a2 2 0 0 0-4 0v1"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>';
     const panHint = document.createElement('div');
@@ -1332,20 +1322,9 @@
       clearTimeout(panHintTimer);
       panHintTimer = setTimeout(()=> panHint.classList.remove('show'), 2200);
     }
-    const panControl = L.control({ position: 'bottomleft' });
-    let panBtnWrap = null, panBtn = null;
-    panControl.onAdd = function(){
-      panBtnWrap = L.DomUtil.create('div', 'leaflet-bar leaflet-control pan-control');
-      panBtnWrap.innerHTML = '<a href="#" role="button" aria-pressed="false" title="Move the map with your hand" aria-label="Move the map with your hand">' + HAND_SVG + '</a>';
-      panBtn = panBtnWrap.querySelector('a');
-      L.DomEvent.disableClickPropagation(panBtnWrap);
-      L.DomEvent.on(panBtnWrap, 'click', function(e){
-        L.DomEvent.preventDefault(e);
-        setPanMode(!panOn);
-      });
-      return panBtnWrap;
-    };
-    panControl.addTo(map);
+    const panBtnWrap = document.getElementById('tb-pan'), panBtn = panBtnWrap;
+    panBtnWrap.innerHTML = HAND_SVG;
+    panBtnWrap.addEventListener('click', ()=> setPanMode(!panOn));
     function setPanMode(on){
       panOn = !!on;
       const mapEl = document.getElementById('map');
@@ -1411,7 +1390,7 @@
     // was getting its top clipped off by the map's own edge — this pixel
     // padding (heavier on top, where pins extend upward from their point)
     // leaves it room to fully show.
-    const FRAME_FIT_OPTIONS = { paddingTopLeft: [10, 45], paddingBottomRight: [10, 15] };
+    const FRAME_FIT_OPTIONS = { paddingTopLeft: [4, 30], paddingBottomRight: [4, 4] };
     function applyFrameFit(animate){
       // Re-measure the container size FIRST. iOS Safari's address bar
       // shows/hides as the page is scrolled, which changes how much
@@ -2039,8 +2018,11 @@
 
   // Push pin (📍 style): a shiny round head in the member's color on a
   // silver needle. The needle's tip is the exact spot on the map.
+  // Pin size on screen (the drawing scales to fit). Change these two
+  // numbers to make all pins bigger or smaller. Original size was 26 x 38.
+  const PIN_W = 22, PIN_H = 32;
   function pinSvg(color){
-    return `<svg width="26" height="38" viewBox="0 0 26 38">
+    return `<svg width="${PIN_W}" height="${PIN_H}" viewBox="0 0 26 38">
       <defs>
         <radialGradient id="pp-shine" cx="0.36" cy="0.32" r="0.75">
           <stop offset="0" stop-color="#fff" stop-opacity="0.55"/>
@@ -2083,14 +2065,14 @@
       const icon = L.divIcon({
         className: 'pin-icon' + (isNew ? ' pin-drop' : ''),
         html: pinSvg(color),
-        iconSize: [26, 38],
-        iconAnchor: [13, 37] // tip of the needle, matching the anchor point on the real coordinate
+        iconSize: [PIN_W, PIN_H],
+        iconAnchor: [PIN_W / 2, PIN_H - 1] // tip of the needle, matching the anchor point on the real coordinate
       });
 
       const marker = L.marker([jLat, jLon], { icon, riseOnHover: true, draggable: false });
       marker.bindTooltip(
         `${escapeHtml(p.name)}<span class="sub">${escapeHtml(placeText(p))}</span>`,
-        { className: 'custom-pin-tooltip', direction: 'top', offset: [0, -32], sticky: true }
+        { className: 'custom-pin-tooltip', direction: 'top', offset: [0, -(PIN_H - 2)], sticky: true }
       );
       marker.on('click', ()=>{
         showTooltip(p, marker);
@@ -2883,14 +2865,14 @@
     const h = Math.min(a.b, b.b) - Math.max(a.t, b.t);
     return (w > 0 && h > 0) ? w * h : 0;
   }
-  const WATER_MAX_LAND = 0.15;   // a "water" spot may touch at most 15% land
+  const WATER_MAX_LAND = 0.2;    // a "water" spot may touch at most 20% land
   const LAND_MIN_LAND = 0.85;    // an "empty land" spot must be at least 85% land
   function layoutCards(ids){
     const base = layer.getBoundingClientRect();
     if(!base.width || !base.height) return;
     const W = base.width, H = base.height;
     const pins = rectsOf('#map .leaflet-marker-pane .pin-icon', base, 4);
-    const controls = rectsOf('#map .leaflet-control-zoom, #map .reset-view-control, #map .pan-control, #map .leaflet-control-attribution, #trip-chip.visible', base, 4);
+    const controls = rectsOf('#map .leaflet-control-attribution', base, 2);
     const grid = buildLandGrid(W, H, 6);
     const placed = [];
     const step = 6, gap = 6;
@@ -2936,8 +2918,9 @@
       // (water, then land); last resort is the least-crowded spot anywhere.
       const normal = startSize === 'sm' ? ['sm'] : ['', 'sm'];
       const attempts = grid
-        ? [...normal.map(z => ['water', z]), ...normal.map(z => ['land', z]),
-           ['water', 'xs'], ['land', 'xs'], ...[...normal, 'xs'].map(z => ['any', z])]
+        ? [...normal.map(z => ['water', z]), ['water', 'xs'],
+           ...normal.map(z => ['land', z]), ['land', 'xs'],
+           ...[...normal, 'xs'].map(z => ['any', z])]
         : [...normal, 'xs'].map(z => ['any', z]);
       let best = null, usedSize = startSize;
       const setSize = sz => { entry.el.classList.remove('sm', 'xs'); if(sz) entry.el.classList.add(sz); };
