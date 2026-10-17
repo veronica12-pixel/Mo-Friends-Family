@@ -681,7 +681,7 @@
     pointer-events:none;    /* the empty layer never blocks the map */
   }
   .trip-card{
-    --w:90px; --h:126px;
+    --w:104px; --h:146px;
     position:absolute;
     left:0; top:0;
     width:var(--w); height:var(--h);
@@ -697,14 +697,14 @@
     transition:left .35s ease, top .35s ease, opacity .25s ease;
     -webkit-tap-highlight-color:transparent;
   }
-  .trip-card.sm{ --w:66px; --h:92px; border-radius:7px; padding:3px; }
+  .trip-card.sm{ --w:90px; --h:126px; border-radius:8px; padding:3px; }
   /* extra-small: only used when a crowded map has no other pin-free spot */
-  .trip-card.xs{ --w:48px; --h:67px; border-radius:6px; padding:2px; }
-  .trip-card.xs .trip-card-inner{ border-width:1px; border-radius:4px; padding:7px 3px 7px; }
-  .trip-card.xs .trip-index{ font-size:6.5px; }
-  .trip-card.xs .trip-index span{ font-size:5px; }
-  .trip-card.xs .trip-card-name{ font-size:7px; margin-top:1px; }
-  .trip-card.xs .trip-card-where{ font-size:5.5px; }
+  .trip-card.xs{ --w:76px; --h:106px; border-radius:7px; padding:3px; }
+  .trip-card.xs .trip-card-inner{ border-width:1px; border-radius:5px; padding:10px 2px 13px; }
+  .trip-card.xs .trip-index{ font-size:9px; }
+  .trip-card.xs .trip-index span{ font-size:7.5px; }
+  .trip-card.xs .trip-card-name{ font-size:12.5px; margin-top:1px; }
+  .trip-card.xs .trip-card-where{ font-size:10.5px; }
   .trip-card.xs .trip-card-where.country, .trip-card.xs .trip-card-credit{ display:none; }
   .trip-card.deal{ animation:trip-deal .45s cubic-bezier(.34,1.5,.5,1); }
   @keyframes trip-deal{
@@ -716,27 +716,27 @@
     flex:1;
     border:1.5px solid var(--gold);
     border-radius:6px;
-    padding:12px 8px 14px;
+    padding:14px 4px 17px;
     display:flex;
     flex-direction:column;
     align-items:center;
     min-height:0;
   }
-  .trip-card.sm .trip-card-inner{ border-width:1px; border-radius:5px; padding:9px 5px 10px; }
+  .trip-card.sm .trip-card-inner{ border-width:1px; border-radius:5px; padding:11px 3px 15px; }
   .trip-index{
     position:absolute;
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
-    font-size:11px;
+    font-size:13px;
     line-height:.9;
     color:#C4472C;
     text-align:center;
   }
-  .trip-index span{ display:block; font-size:9px; }
+  .trip-index span{ display:block; font-size:11px; }
   .trip-index.tl{ top:2px; left:2px; }
   .trip-index.br{ bottom:2px; right:2px; transform:rotate(180deg); }
-  .trip-card.sm .trip-index{ font-size:8px; }
-  .trip-card.sm .trip-index span{ font-size:6.5px; }
+  .trip-card.sm .trip-index{ font-size:10.5px; }
+  .trip-card.sm .trip-index span{ font-size:8.5px; }
   .trip-card-map{
     width:100%;
     flex:1;
@@ -750,28 +750,29 @@
   .trip-card-name{
     font-family:'Baloo 2', sans-serif;
     font-weight:800;
-    font-size:11px;
+    font-size:16px;
     line-height:1.1;
     color:var(--ink);
-    margin-top:2px;
+    margin-top:3px;
     max-width:100%;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .trip-card-where{
-    font-size:8px;
-    line-height:1.2;
-    color:var(--ink-soft);
+    font-size:12.5px;
+    font-weight:600;
+    line-height:1.25;
+    color:#2A3B40;
     max-width:100%;
     text-align:center;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
-  .trip-card.sm .trip-card-name{ font-size:8.5px; margin-top:1px; }
-  .trip-card.sm .trip-card-where{ font-size:6.5px; }
+  .trip-card.sm .trip-card-name{ font-size:14px; margin-top:2px; }
+  .trip-card.sm .trip-card-where{ font-size:11px; }
   .trip-card-credit{
     position:absolute; right:12px; bottom:0;
-    font-size:5.5px; color:#9AA9AE;
+    font-size:6px; color:#9AA9AE;
   }
-  .trip-card.sm .trip-card-credit{ right:9px; font-size:4.5px; }
+  .trip-card.sm .trip-card-credit{ right:10px; font-size:5.5px; }
   .trip-chip{
     position:absolute;
     left:8px; top:8px;
@@ -789,18 +790,18 @@
   }
   .trip-chip.visible{ display:block; }
   @media (min-width: 900px){
-    .trip-card{ --w:128px; --h:180px; }
-    .trip-card.sm{ --w:98px; --h:137px; }
+    .trip-card{ --w:144px; --h:202px; }
+    .trip-card.sm{ --w:122px; --h:171px; }
     .trip-index{ font-size:15px; }
     .trip-index span{ font-size:12px; }
     .trip-card.sm .trip-index{ font-size:12px; }
     .trip-card.sm .trip-index span{ font-size:10px; }
-    .trip-card-inner{ padding:16px 11px 18px; }
-    .trip-card.sm .trip-card-inner{ padding:13px 8px 14px; }
-    .trip-card-name{ font-size:15px; }
-    .trip-card-where{ font-size:10.5px; }
-    .trip-card.sm .trip-card-name{ font-size:12px; }
-    .trip-card.sm .trip-card-where{ font-size:9px; }
+    .trip-card-inner{ padding:18px 6px 20px; }
+    .trip-card.sm .trip-card-inner{ padding:16px 5px 18px; }
+    .trip-card-name{ font-size:19px; }
+    .trip-card-where{ font-size:14.5px; }
+    .trip-card.sm .trip-card-name{ font-size:17px; }
+    .trip-card.sm .trip-card-where{ font-size:13px; }
     .trip-card-credit{ font-size:7px; }
     .trip-chip{ font-size:12.5px; padding:5px 11px; }
   }
@@ -991,7 +992,7 @@
         Save <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
       </button>
     </div>
-    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-10-15-06</div>
+    <div id="debug-stamp" style="text-align:center; font-size:10px; color:rgba(255,255,255,0.35); padding:6px 0 0;">build 2026-10-17-04</div>
   </footer>
   <div id="save-modal"></div>
   <div id="fact-modal"></div>
@@ -2036,11 +2037,23 @@
     return PIN_COLORS[hashStr(id) % PIN_COLORS.length];
   }
 
+  // Push pin (📍 style): a shiny round head in the member's color on a
+  // silver needle. The needle's tip is the exact spot on the map.
   function pinSvg(color){
-    return `<svg width="30" height="42" viewBox="-15 -20 30 42">
-      <path d="M0,-18 C6,-18 10.5,-13.5 10.5,-8 C10.5,0 0,20 0,20 C0,20 -10.5,0 -10.5,-8 C-10.5,-13.5 -6,-18 0,-18 Z"
-            fill="${color}" stroke="rgba(15,30,34,0.55)" stroke-width="1.2"/>
-      <circle cx="0" cy="-8" r="3.2" fill="#FFFDF8"/>
+    return `<svg width="26" height="38" viewBox="0 0 26 38">
+      <defs>
+        <radialGradient id="pp-shine" cx="0.36" cy="0.32" r="0.75">
+          <stop offset="0" stop-color="#fff" stop-opacity="0.55"/>
+          <stop offset="0.45" stop-color="#fff" stop-opacity="0"/>
+          <stop offset="1" stop-color="#000" stop-opacity="0.28"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="13" cy="36.6" rx="3" ry="1.1" fill="rgba(0,0,0,0.25)"/>
+      <line x1="13" y1="19" x2="13" y2="36.2" stroke="#8E98A3" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="12.4" y1="19" x2="12.4" y2="35" stroke="#D5DBE1" stroke-width="0.9" stroke-linecap="round"/>
+      <circle cx="13" cy="11" r="10" fill="${color}" stroke="rgba(15,30,34,0.45)" stroke-width="1"/>
+      <circle cx="13" cy="11" r="10" fill="url(#pp-shine)"/>
+      <ellipse cx="9.6" cy="7.4" rx="3" ry="2.2" fill="#fff" opacity="0.75" transform="rotate(-30 9.6 7.4)"/>
     </svg>`;
   }
 
@@ -2070,14 +2083,14 @@
       const icon = L.divIcon({
         className: 'pin-icon' + (isNew ? ' pin-drop' : ''),
         html: pinSvg(color),
-        iconSize: [30, 42],
-        iconAnchor: [15, 40] // tip of the teardrop, matching the anchor point on the real coordinate
+        iconSize: [26, 38],
+        iconAnchor: [13, 37] // tip of the needle, matching the anchor point on the real coordinate
       });
 
       const marker = L.marker([jLat, jLon], { icon, riseOnHover: true, draggable: false });
       marker.bindTooltip(
         `${escapeHtml(p.name)}<span class="sub">${escapeHtml(placeText(p))}</span>`,
-        { className: 'custom-pin-tooltip', direction: 'top', offset: [0, -34], sticky: true }
+        { className: 'custom-pin-tooltip', direction: 'top', offset: [0, -32], sticky: true }
       );
       marker.on('click', ()=>{
         showTooltip(p, marker);
@@ -2582,6 +2595,25 @@
   let trips = [];
   let vacMap = null, vacMarker = null, selectedId = null;
 
+  // Same push pin as the main map (round head on a silver needle), in green.
+  function vacPushPin(w){
+    const h = Math.round(w * 38 / 26);
+    return `<svg width="${w}" height="${h}" viewBox="0 0 26 38">
+      <defs>
+        <radialGradient id="vp-shine" cx="0.36" cy="0.32" r="0.75">
+          <stop offset="0" stop-color="#fff" stop-opacity="0.55"/>
+          <stop offset="0.45" stop-color="#fff" stop-opacity="0"/>
+          <stop offset="1" stop-color="#000" stop-opacity="0.28"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="13" cy="36.6" rx="3" ry="1.1" fill="rgba(0,0,0,0.25)"/>
+      <line x1="13" y1="19" x2="13" y2="36.2" stroke="#8E98A3" stroke-width="2.4" stroke-linecap="round"/>
+      <line x1="12.4" y1="19" x2="12.4" y2="35" stroke="#D5DBE1" stroke-width="0.9" stroke-linecap="round"/>
+      <circle cx="13" cy="11" r="10" fill="#2FA88A" stroke="rgba(15,30,34,0.45)" stroke-width="1"/>
+      <circle cx="13" cy="11" r="10" fill="url(#vp-shine)"/>
+      <ellipse cx="9.6" cy="7.4" rx="3" ry="2.2" fill="#fff" opacity="0.75" transform="rotate(-30 9.6 7.4)"/>
+    </svg>`;
+  }
   function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
   function setStatus(msg, type){ statusEl.textContent = msg || ''; statusEl.className = 'status-msg' + (type ? ' ' + type : ''); }
   function flagEmoji(cc){
@@ -2668,8 +2700,8 @@
       if(vacMarker) vacMarker.remove();
       vacMarker = L.marker(ll, { icon: L.divIcon({
         className:'pin-icon',
-        html:`<svg width="30" height="42" viewBox="-15 -20 30 42"><path d="M0,-18 C6,-18 10.5,-13.5 10.5,-8 C10.5,0 0,20 0,20 C0,20 -10.5,0 -10.5,-8 C-10.5,-13.5 -6,-18 0,-18 Z" fill="#2FA88A" stroke="rgba(15,30,34,0.55)" stroke-width="1.2"/><circle cx="0" cy="-8" r="3.2" fill="#FFFDF8"/></svg>`,
-        iconSize:[30,42], iconAnchor:[15,40] }) }).addTo(vacMap);
+        html: vacPushPin(26),
+        iconSize:[26,38], iconAnchor:[13,37] }) }).addTo(vacMap);
     });
     caption.innerHTML = `${flagEmoji(t.cc)} <strong>${esc(t.name)}</strong> is in ${esc(t.city)}, ${esc(t.country)}${t.approx ? ' (approx.)' : ''}`;
     renderList();
@@ -2722,9 +2754,23 @@
     el.querySelector('.tl').innerHTML = `${esc(rank)}<span>♥</span>`;
     el.querySelector('.br').innerHTML = `${esc(rank)}<span>♥</span>`;
     el.querySelector('.trip-card-name').textContent = t.name;
-    el.querySelector('.city').textContent = `📍 ${t.city}`;
-    el.querySelector('.country').textContent = `${flagEmoji(t.cc)} ${t.country}`;
+    el.querySelector('.city').textContent = t.city;
+    el.querySelector('.country').textContent = t.country;
     el.title = `${t.name} is in ${t.city}, ${t.country}`;
+  }
+  // Long names/places: shrink the text just enough to show it all
+  // (instead of cutting it off with "…"), but never below a readable size.
+  function fitCardText(entry){
+    if(!entry) return;
+    entry.el.querySelectorAll('.trip-card-name, .trip-card-where').forEach(n=>{
+      n.style.fontSize = '';
+      let size = parseFloat(getComputedStyle(n).fontSize) || 12;
+      const min = n.classList.contains('trip-card-name') ? 9 : 7.5;
+      while(n.scrollWidth > n.clientWidth + 0.5 && size > min){
+        size -= 0.5;
+        n.style.fontSize = size + 'px';
+      }
+    });
   }
   function drawCardMap(entry, t){
     if(typeof L === 'undefined') return;
@@ -2743,10 +2789,10 @@
     const z = Math.max(0.5, Math.min(8, Math.log2(w * 360 / (256 * 24))));
     entry.map.setView([t.lat, t.lon], z, { animate:false });
     if(entry.marker) entry.marker.remove();
-    const pw = w < 50 ? 9 : (w < 70 ? 12 : 18), ph = Math.round(pw * 1.4);
+    const pw = w < 50 ? 13 : (w < 70 ? 16 : (w < 100 ? 20 : 24)), ph = Math.round(pw * 38 / 26);
     entry.marker = L.marker([t.lat, t.lon], { interactive:false, icon: L.divIcon({
       className:'',
-      html:`<svg width="${pw}" height="${ph}" viewBox="-15 -20 30 42"><path d="M0,-18 C6,-18 10.5,-13.5 10.5,-8 C10.5,0 0,20 0,20 C0,20 -10.5,0 -10.5,-8 C-10.5,-13.5 -6,-18 0,-18 Z" fill="#2FA88A" stroke="rgba(15,30,34,0.6)" stroke-width="1.6"/><circle cx="0" cy="-8" r="3.4" fill="#FFFDF8"/></svg>`,
+      html: vacPushPin(pw),
       iconSize:[pw,ph], iconAnchor:[pw/2, ph-1] }) }).addTo(entry.map);
   }
 
@@ -2942,6 +2988,7 @@
     });
     requestAnimationFrame(()=>{
       layoutCards(list.map(t => t.id));
+      list.forEach(t => fitCardText(cardEls[t.id]));
       refreshCardMaps(list);
     });
   }
@@ -2971,7 +3018,7 @@
     clearTimeout(relayoutTimer);
     relayoutTimer = setTimeout(()=>{
       const list = sortedTrips().slice(0, MAX_CARDS).filter(t => cardEls[t.id]);
-      if(list.length){ layoutCards(list.map(t => t.id)); refreshCardMaps(list); }
+      if(list.length){ layoutCards(list.map(t => t.id)); list.forEach(t => fitCardText(cardEls[t.id])); refreshCardMaps(list); }
     }, 250);
   }
   window.addEventListener('resize', ()=>{ Object.values(cardEls).forEach(e=> e.key = ''); renderCards(); });
