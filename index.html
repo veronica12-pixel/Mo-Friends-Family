@@ -37,11 +37,13 @@
     overscroll-behavior:none;
   }
   button{ font:inherit; color:inherit; cursor:pointer; }
+  .app-bg{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+  .app > *:not(.app-bg){ position:relative; z-index:1; }
   .app{
     position:fixed; inset:0;
     display:flex; flex-direction:column;
     max-width:760px; margin:0 auto;
-    background:radial-gradient(circle at 20% 0%, #1a5266 0%, var(--ocean-deep) 55%);
+    background:linear-gradient(180deg, #06301E 0%, #0E5134 35%, #2E8B57 75%, #6CC48C 100%);
   }
 
   /* ---------- Header ---------- */
@@ -50,7 +52,7 @@
     padding:calc(var(--safe-t) + 10px) 14px 0;
   }
   .header-chart-svg{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
-  .brand{ position:relative; display:flex; align-items:center; gap:10px; }
+  .brand{ position:relative; display:flex; align-items:center; gap:10px; padding-bottom:10px; }
   .brand-logo{
     width:38px; height:38px; flex-shrink:0; border-radius:11px;
     background:linear-gradient(145deg,#1F6B57,#0F3F4F);
@@ -272,23 +274,51 @@
   /* ---------- Tab bar ---------- */
   .tabbar{
     flex-shrink:0; display:flex; align-items:stretch;
-    height:calc(var(--nav-h) + var(--safe-b)); padding-bottom:var(--safe-b);
+    height:calc(var(--nav-h) + 22px + var(--safe-b)); padding-bottom:var(--safe-b);
     background:#081F28; border-top:1px solid rgba(255,255,255,0.08);
   }
+  .tabbar{ gap:8px; padding-left:8px; padding-right:8px; padding-top:7px; }
   .tab{
-    flex:1; min-width:0; background:none; border:none; color:#7FA3AE; padding:6px 0 4px;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
-    font-size:10.5px; font-weight:600;
+    --c1:#7FA3AE; --c2:#56707A; --c3:#3B5560;
+    flex:1; min-width:0; margin-bottom:7px; border-radius:14px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    font-size:11px; font-weight:800; color:#fff; letter-spacing:.01em; text-shadow:0 1px 1px rgba(0,0,0,0.3);
+    background:linear-gradient(180deg, var(--c1) 0%, var(--c2) 100%);
+    border:1px solid var(--c3); box-shadow:0 4px 0 var(--c3), 0 6px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.45);
+    opacity:.85; filter:saturate(.8); transform:translateY(0); transition:transform .08s, box-shadow .08s, opacity .15s;
   }
-  .tab svg{ width:24px; height:24px; }
-  .tab.active{ color:#fff; }
-  .tab.active svg{ color:#3DDC97; }
-  .tab.join .bubble{
-    width:46px; height:46px; margin-top:-16px; border-radius:15px;
-    background:var(--bull); color:#fff; display:flex; align-items:center; justify-content:center;
-    box-shadow:0 6px 14px rgba(22,169,116,0.45); border:3px solid #081F28;
-  }
-  .tab.join .bubble svg{ color:#fff !important; width:26px; height:26px; }
+  .tab svg{ width:21px; height:21px; filter:drop-shadow(0 1px 1px rgba(0,0,0,0.3)); }
+  .tab.active{ opacity:1; filter:none; box-shadow:0 4px 0 var(--c3), 0 0 0 2px rgba(255,255,255,0.85), 0 6px 14px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.5); }
+  .tab:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--c3), 0 2px 5px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.45); }
+  /* round colored 3D buttons, icon only */
+  /* one shaded palette: light mint → deep forest green */
+  .tab.t-green { --c1:#BBF7D0; --c2:#4ADE80; --c3:#15803D; }
+  .tab.t-blue  { --c1:#86EFAC; --c2:#22C55E; --c3:#166534; }
+  .tab.t-orange{ --c1:#6EE7B7; --c2:#10B981; --c3:#065F46; }
+  .tab.t-gold  { --c1:#34D399; --c2:#059669; --c3:#064E3B; }
+  .tab.t-purple{ --c1:#2E6B52; --c2:#14532D; --c3:#052E16; }
+  .tab .rb svg.egg{ width:84%; height:84%; }
+  .goose-icon svg.egg{ width:78%; height:78%; }
+  .tab, .tab.active, .tab:active{ background:none !important; border:none !important; box-shadow:none !important; opacity:1 !important; filter:none !important; transform:none !important; }
+  /* colored glow behind a button on hover, tap, and for the open page */
+  .tab{ border-radius:16px !important; transition:background-color .15s ease !important; }
+  .tab.t-green, .tab.t-blue, .tab.t-orange, .tab.t-gold, .tab.t-purple{ --glow:rgba(74,222,128,0.26); }
+  .tab.active{ background:var(--glow) !important; }
+  @media (hover:hover){ .tab:hover{ background:var(--glow) !important; } }
+  .tab:active{ background:var(--glow) !important; }
+  .tab .rb{ width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:25px; line-height:1;
+    background:linear-gradient(180deg, var(--c1), var(--c2)); border:1px solid var(--c3);
+    box-shadow:0 4px 0 var(--c3), 0 6px 10px rgba(0,0,0,0.35), inset 0 2px 0 rgba(255,255,255,0.45);
+    transition:transform .08s, box-shadow .08s; text-shadow:none; }
+  .tab .rb{ transition:transform .15s ease, width .15s ease, height .15s ease, font-size .15s ease, box-shadow .08s; }
+  .tab.active .rb{ transform:none;
+    box-shadow:0 5px 0 var(--c3), 0 0 0 3px #fff, 0 10px 16px rgba(0,0,0,0.45), inset 0 2px 0 rgba(255,255,255,0.45); }
+  .tab.active:active .rb{ transform:translateY(3px); }
+  .tab{ flex-direction:column !important; gap:4px !important; justify-content:flex-end !important; padding-bottom:4px !important; }
+  .tab .rb svg.usa{ width:80%; height:auto; filter:drop-shadow(0 1px 1px rgba(0,0,0,0.35)); }
+  .tab .tl{ white-space:nowrap; font-size:11px; font-weight:600; color:#8FB0BA; text-shadow:none; line-height:1; }
+  .tab.active .tl{ color:#fff; font-weight:800; }
+  .tab:active .rb{ transform:translateY(3px); box-shadow:0 1px 0 var(--c3), 0 2px 5px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.45); }
 
   /* ---------- Bottom sheet ---------- */
   .sheet-wrap{ position:fixed; inset:0; z-index:3000; display:none; }
@@ -301,6 +331,10 @@
   }
   @keyframes up{ from{ transform:translateY(40%); opacity:.4; } to{ transform:none; opacity:1; } }
   @keyframes fade{ from{ opacity:0; } }
+  .sheet-x{ position:sticky; float:right; top:0; margin:-4px -6px 0 8px; z-index:5; width:40px; height:40px; border:none; background:none;
+    padding:0; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .sheet-x svg{ width:28px; height:28px; filter:drop-shadow(0 2px 2px rgba(0,0,0,0.25)); transition:transform .1s; }
+  .sheet-x:hover svg{ transform:translateY(2px); }
   .grab{ width:42px; height:5px; border-radius:3px; background:#D6CDB8; margin:4px auto 10px; }
   .sh-head{ display:flex; gap:12px; align-items:center; }
   .sh-cal{ width:62px; flex-shrink:0; border-radius:10px; overflow:hidden; box-shadow:0 3px 8px rgba(0,0,0,0.2); text-align:center; background:#fff; }
@@ -381,7 +415,6 @@
     border-radius:10px; padding:8px 12px; font-weight:700; font-size:13.5px; color:var(--ink);
   }
   .copy-btn svg{ width:16px; height:16px; }
-  .copy-btn.done{ background:var(--bull); border-color:var(--bull); color:#fff; }
 
   /* compact trades screen */
   #view-trades .view-title{ margin-bottom:8px; }
@@ -489,24 +522,30 @@
   #view-members .search input{ font-size:14px; padding:8px 10px 8px 34px; border-radius:10px; }
   #view-members .search svg{ width:16px; height:16px; left:10px; }
   /* cork board with pinned post-its */
-  #member-grid{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:13px 7px; padding:16px 8px 14px;
+  #member-grid{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:11px 6px; padding:14px 7px 12px; align-items:start;
     border-radius:12px; border:8px solid #8B5E34; background-color:#C9A26B;
     background-image:radial-gradient(rgba(0,0,0,0.12) 1px, transparent 1.5px), radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1.5px);
     background-size:7px 7px, 11px 11px; box-shadow:inset 0 0 18px rgba(0,0,0,0.35), 0 6px 16px rgba(0,0,0,0.3); }
-  @media (max-width:340px){ #member-grid{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
-  @media (min-width:560px){ #member-grid{ grid-template-columns:repeat(6, minmax(0,1fr)); } }
+  @media (max-width:340px){ #member-grid{ grid-template-columns:repeat(4, minmax(0,1fr)); } }
+  @media (min-width:560px){ #member-grid{ grid-template-columns:repeat(8, minmax(0,1fr)); } }
   #member-grid .empty{ grid-column:1/-1; color:#3B2A12; font-family:'Caveat',cursive; font-size:22px; padding:20px 6px; }
-  .note{ position:relative; min-width:0; padding:13px 4px 7px; border:none; text-align:center; cursor:pointer;
+  .note{ position:relative; min-width:0; padding:11px 3px 6px; border:none; text-align:center; cursor:pointer;
     display:flex; flex-direction:column; align-items:center; gap:2px; box-shadow:2px 4px 6px rgba(0,0,0,0.35);
     background-image:linear-gradient(180deg, rgba(255,255,255,0.3), rgba(0,0,0,0.03)); }
   .note:active{ filter:brightness(0.97); }
-  .note-pin{ position:absolute; top:-5px; left:50%; width:12px; height:12px; border-radius:50%; transform:translateX(-50%);
+  .note-name, .note-city, .note-trip, .note-you, .note-pat{ position:relative; z-index:1; }
+  .note-wm{ position:absolute; right:3px; bottom:16px; width:62px; height:40px; opacity:.28; z-index:0; pointer-events:none; }
+  .note-wm svg{ width:100%; height:100%; display:block; }
+  .note-pat{ margin-top:auto; padding-top:12px; font-family:'Caveat',cursive; font-size:11.5px; line-height:1.05; color:#333; }
+  .note-pat b{ font-family:Inter,sans-serif; font-size:8px; vertical-align:1px; }
+  .note-pat.bull b{ color:#15803D; } .note-pat.bear b{ color:#B91C1C; } .note-pat.flat b{ color:#555; }
+  .note-pin{ position:absolute; top:-5px; left:50%; width:10px; height:10px; border-radius:50%; transform:translateX(-50%);
     background:radial-gradient(circle at 35% 35%, #fff 0 12%, var(--pc) 32%, #000 150%); box-shadow:1px 3px 3px rgba(0,0,0,0.4); }
-  .note-name{ font-family:'Caveat',cursive; font-weight:700; font-size:16.5px; line-height:1; color:#2B2B2B; word-break:break-word; }
-  .note-city{ font-family:'Caveat',cursive; font-size:12px; line-height:1.1; color:#4A4A4A; }
+  .note-name{ font-family:'Caveat',cursive; font-weight:700; font-size:14.5px; line-height:1; color:#2B2B2B; word-break:break-word; }
+  .note-city{ font-family:'Caveat',cursive; font-size:10.5px; line-height:1.1; color:#4A4A4A; }
   .note-city .sb-flag{ display:block; width:16px; height:11px; margin:2px auto 0; }
   .note-you{ position:absolute; top:3px; right:3px; font-style:normal; font-size:7.5px; font-weight:800; background:var(--gold); color:#fff; padding:1px 4px; border-radius:4px; }
-  .note-trip{ margin-top:2px; font-size:9px; font-weight:700; padding:1px 4px; border-radius:6px; background:rgba(255,255,255,0.6); color:#2B2B2B;
+  .note-trip{ margin-top:2px; font-size:8px; font-weight:700; padding:1px 3px; border-radius:6px; background:rgba(255,255,255,0.6); color:#2B2B2B;
     border:1px solid rgba(0,0,0,0.12); max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .mt{ display:flex; flex-direction:column; padding:0; border:none; border-radius:12px; overflow:hidden; text-align:left;
     background:var(--paper); box-shadow:0 4px 12px rgba(0,0,0,0.25); min-width:0; }
@@ -577,6 +616,7 @@
   .trw2-right{ grid-area:right; }
   .trw2-tos{ font-family:'JetBrains Mono',monospace; font-size:10.5px; line-height:1.35; color:var(--ink); word-break:break-word;
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .trw2-tos.one-line{ display:block; white-space:nowrap; overflow:hidden; }
   .trw2.buy .trw2-tos{ color:#0B5E40; } .trw2.sell .trw2-tos{ color:#8E1C22; }
   .trw2-right{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
   .trw2-btns{ display:flex; gap:5px; }
@@ -587,7 +627,6 @@
   .trw2-state small{ font-size:8.5px; font-weight:600; opacity:.9; letter-spacing:0; }
   .trw2-copy{ background:#fff; border:1.5px solid var(--line); color:var(--ink); }
   .trw2-copy svg{ width:13px; height:13px; }
-  .trw2-copy.done{ background:var(--bull); border-color:var(--bull); color:#fff; }
   .trw2-state.open{ background:#E3F6EC; border:1.5px solid #8FD4AF; color:#0E7A52; letter-spacing:.05em; }
   .trw2-state.closed{ background:#D93A3F; border:1.5px solid #B4232A; color:#fff; cursor:default; }
   .trw2-date{ font-size:10.5px; color:var(--ink-soft); font-weight:600; white-space:nowrap; }
@@ -599,6 +638,46 @@
   body.all-unlocked .unlocked-pill{ display:block; }
   .lock-panel .lock-row{ margin-top:4px; }
 
+  /* compact header: one row with search + Join */
+  #view-members{ padding-top:10px; }
+  #view-members .view-title{ margin:0 2px 6px; }
+  #view-members .view-title h2{ font-size:17px; gap:6px; }
+  #view-members .view-title h2 svg{ width:17px; height:17px; }
+  #view-members .view-title .count{ font-size:11.5px; }
+  .members-bar{ display:flex; gap:6px; margin-bottom:10px; }
+  .members-bar .search{ flex:1; min-width:0; margin:0 !important; }
+  #view-members .members-bar .search input{ font-size:14px; padding:7px 10px 7px 32px; border-radius:10px; }
+  #view-members .members-bar .search svg{ width:15px; height:15px; left:10px; }
+  .join-open{ flex-shrink:0; padding:7px 13px !important; font-size:14px !important; border-radius:10px !important; white-space:nowrap;
+    box-shadow:0 3px 0 #0F6B33, 0 4px 8px rgba(0,0,0,0.25); }
+
+  /* five buttons in the bar: a little narrower */
+  .tabbar{ gap:4px !important; padding-left:4px !important; padding-right:4px !important; }
+  .tab .rb{ width:50px; height:50px; font-size:24px; }
+  .tab.active .rb{ width:50px !important; height:50px !important; font-size:24px !important; }
+  .tab .tl{ font-size:10px !important; }
+  @media (max-width:375px){ .tab .tl{ font-size:9px !important; letter-spacing:-0.2px; } }
+  /* Golden Goose page */
+  .goose-card{ margin:30px auto 10px; max-width:420px; text-align:center; padding:28px 20px; border-radius:20px;
+    background:linear-gradient(180deg,#FFF8DD,#FDE68A); border:1px solid #E3A23D; box-shadow:0 8px 22px rgba(0,0,0,0.3); }
+  .goose-icon{ width:96px; height:96px; margin:0 auto 10px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(180deg,#2E6B52,#0D2A1F); border:1px solid #071A12; box-shadow:0 5px 0 #071A12, 0 8px 14px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.3); }
+  .goose-card h2{ margin:0 0 6px; font-family:'Baloo 2',sans-serif; font-size:28px; color:#7A4B00; }
+  .goose-card p{ margin:0; font-size:16px; font-weight:600; color:#7A4B00; }
+
+  .tm-row{ display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px dashed var(--line); }
+  .tm-row:last-child{ border-bottom:none; }
+  .tm-flag{ font-size:22px; }
+  .tm-tx{ flex:1; min-width:0; display:flex; flex-direction:column; font-size:14px; }
+  .tm-tx span{ font-size:12px; color:var(--ink-soft); }
+  .tm-btn{ padding:7px 10px !important; font-size:13px !important; }
+
+  .date-wrap{ position:relative; flex-shrink:0; display:flex; align-items:center; gap:4px; padding:0 0 0 8px;
+    border:1.5px solid var(--line); border-radius:10px; background:#fff; font-size:14px; }
+  .date-wrap input{ border:none !important; box-shadow:none !important; padding:7px 6px 7px 0 !important; font-size:13px !important;
+    width:118px; background:transparent; }
+  @media (max-width:380px){ .date-wrap input{ width:104px; font-size:12px !important; } }
+
   .kv{ display:flex; justify-content:space-between; gap:10px; font-size:13.5px; padding:7px 0; border-bottom:1px dashed var(--line); }
   .kv:last-child{ border-bottom:none; } .kv b{ font-weight:700; }
   .btn-row{ display:flex; gap:10px; flex-wrap:wrap; } .btn-row .btn{ flex:1; }
@@ -606,6 +685,7 @@
 </head>
 <body>
 <div class="app">
+  <svg class="app-bg" id="app-bg" aria-hidden="true"></svg>
   <header class="top">
     <svg id="header-chart" class="header-chart-svg" aria-hidden="true" preserveAspectRatio="none"></svg>
     <div class="brand">
@@ -617,7 +697,6 @@
         <h1>Mo's Friends and Family</h1>
       </div>
     </div>
-    <div class="ticker" aria-label="Who is on the map"><div class="ticker-track" id="ticker"></div></div>
     <button class="unlocked-pill" id="unlocked-pill">🔓 Editing unlocked — tap to lock</button>
     <div class="offline-bar" id="offline-bar">&#9992;&#65039; Offline &mdash; showing the pins and trips saved on this device</div>
   </header>
@@ -676,9 +755,12 @@
         <h2><svg viewBox="0 0 24 24" fill="none" stroke="#3DDC97" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>Traders</h2>
         <span class="count" id="member-count"></span>
       </div>
-      <div class="search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input class="inp" id="member-search" type="search" placeholder="Find a friend or city" autocomplete="off">
+      <div class="members-bar">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input class="inp" id="member-search" type="search" placeholder="Find a friend or city" autocomplete="off">
+        </div>
+        <button class="btn bull join-open" id="join-open" aria-label="Add yourself to the map">＋ Join</button>
       </div>
       <div class="cal-grid" id="member-grid"></div>
       <div class="foot"><span class="thor">&copy; 2026 Thor</span></div>
@@ -686,6 +768,7 @@
 
     <!-- JOIN -->
     <section class="view scroll" id="view-join">
+      <button class="btn" id="join-back" style="padding:8px 12px;font-size:14px;margin-bottom:10px;background:rgba(255,253,248,0.97)">&larr; Back to traders</button>
       <div class="view-title"><h2>🐂 Join the map</h2></div>
       <div class="panel">
         <h3>Drop your pin</h3>
@@ -722,7 +805,8 @@
         <form id="trade-form" autocomplete="off">
           <textarea class="inp" id="trade-text" rows="2" spellcheck="false" autocapitalize="characters" placeholder="Paste TOS trade(s) here — e.g. BUY +1 VERTICAL SPX 100 (Weeklys) 20 NOV 26 5900/5910 CALL @1.25 LMT"></textarea>
           <div class="trade-row2">
-            <input class="inp" id="trade-note" maxlength="80" placeholder="Note (optional)">
+            <label class="date-wrap" title="Trade date">📅<input class="inp" id="trade-date" type="date" aria-label="Trade date"></label>
+            <input class="inp" id="trade-note" maxlength="80" placeholder="Note">
             <button type="submit" class="btn bull" id="trade-add">Add</button>
           </div>
           <div class="parse-hint" id="trade-hint"></div>
@@ -742,6 +826,16 @@
       <div class="foot"><span class="thor">&copy; 2026 Thor</span></div>
     </section>
 
+    <!-- GOLDEN GOOSE -->
+    <section class="view scroll" id="view-goose">
+      <div class="goose-card">
+        <div class="goose-icon"><svg class="egg" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="gep" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#FFFDF0"/><stop offset=".4" stop-color="#F5C542"/><stop offset="1" stop-color="#8A5A0B"/></radialGradient></defs><ellipse cx="50" cy="52" rx="28" ry="36" fill="url(#gep)" stroke="#8A5A0B" stroke-width="2.2"/><path d="M30 66 L42 54 L50 60 L66 40" fill="none" stroke="#14532D" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 40 H67 V49" fill="none" stroke="#14532D" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M38 26 q4 -5 10 -6" stroke="#FFFDF0" stroke-width="3" stroke-linecap="round" fill="none" opacity=".8"/></svg></div>
+        <h2>Golden Goose</h2>
+        <p>Golden Goose strategy coming soon</p>
+      </div>
+      <div class="foot"><span class="thor">&copy; 2026 Thor</span></div>
+    </section>
+
     <!-- SETTINGS -->
     <section class="view scroll" id="view-settings">
       <div class="view-title"><h2>⚙️ Settings</h2></div>
@@ -751,6 +845,11 @@
           <div class="txt" id="global-lock-txt"></div>
           <button class="lock-btn locked" id="global-lock-btn" aria-label="Unlock editing"></button>
         </div>
+      </div>
+      <div class="panel">
+        <h3>✈️ Trips</h3>
+        <p class="help">Remove a trip when the person is back home.</p>
+        <div id="trip-manage"></div>
       </div>
       <div class="panel">
         <h3>🖨️ Print trades</h3>
@@ -767,21 +866,11 @@
   </main>
 
   <nav class="tabbar" id="tabbar">
-    <button class="tab active" data-view="trades">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v3M7 14v7M17 3v6M17 17v4"/><rect x="4.5" y="6" width="5" height="8" rx="1"/><rect x="14.5" y="9" width="5" height="8" rx="1"/></svg>Trades
-    </button>
-    <button class="tab" data-view="map">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>Map
-    </button>
-    <button class="tab join" data-view="join">
-      <span class="bubble"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>Join
-    </button>
-    <button class="tab" data-view="members">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="m7 17 3-3 2 2 4-4"/></svg>Traders
-    </button>
-    <button class="tab" data-view="settings">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>Settings
-    </button>
+    <button class="tab t-green active" data-view="trades" aria-label="Trades"><span class="rb">💰</span><span class="tl">Trades</span></button>
+    <button class="tab t-blue" data-view="map" aria-label="Where We Live"><span class="rb"><svg class="usa" viewBox="0 8 100 72" aria-hidden="true"><path d="M7.2 26.3 51.1 26.3 51.1 25.5 51.6 25.6 52.0 26.8 54.6 27.0 56.8 28.2 57.9 27.8 60.3 28.3 61.9 27.6 67.5 30.5 68.0 31.4 68.7 31.2 68.9 32.2 69.7 32.3 69.5 32.8 71.2 33.6 71.8 37.2 71.2 39.1 70.2 40.3 71.0 41.1 76.8 38.8 76.6 37.4 77.2 37.1 80.3 37.1 83.4 34.3 88.8 34.3 89.1 33.7 89.8 33.9 92.4 29.4 92.9 29.9 94.1 29.6 94.7 30.1 94.7 32.9 96.0 34.7 94.3 35.7 93.6 35.3 93.5 35.9 93.1 35.2 92.5 36.4 91.9 36.7 91.9 36.3 91.8 36.7 91.8 36.3 91.6 36.8 91.5 36.2 91.5 37.0 91.2 36.6 90.7 37.1 89.8 38.7 90.2 39.1 89.5 39.7 90.7 41.0 91.2 40.8 91.1 40.3 91.3 41.0 90.1 41.4 90.1 40.9 89.3 41.5 89.4 40.8 89.0 40.8 88.8 41.7 86.6 41.8 85.0 42.8 84.9 41.8 84.4 43.4 84.8 43.5 84.7 44.9 84.2 45.7 83.3 46.6 83.4 46.1 82.3 45.2 83.2 44.4 82.3 45.1 83.1 47.6 81.7 50.2 82.2 48.6 81.8 48.6 81.9 47.7 81.6 48.0 81.1 47.5 81.7 47.2 81.1 47.1 81.5 46.7 81.0 46.8 81.9 45.3 80.6 45.9 81.0 47.7 80.5 47.1 80.6 47.5 81.1 48.4 79.6 47.7 79.9 46.7 79.5 47.8 81.2 48.7 80.8 49.2 79.8 48.1 81.2 49.3 80.8 50.0 80.4 49.5 81.2 50.4 79.6 49.9 80.6 50.1 80.8 50.8 81.6 50.6 82.4 52.9 81.7 51.1 82.0 52.4 81.3 51.9 81.5 52.2 80.7 52.5 80.5 51.9 80.5 52.6 81.6 52.6 81.6 53.2 81.9 52.6 82.1 52.9 81.4 53.8 80.0 53.5 80.9 54.0 80.4 54.6 79.9 54.2 80.1 54.6 81.1 54.8 79.5 55.4 79.3 55.0 78.5 56.7 78.5 56.2 78.4 56.8 77.2 57.0 76.2 58.5 74.2 59.5 74.4 60.0 73.9 59.5 74.2 60.2 72.9 61.9 73.2 64.9 75.2 71.1 74.6 74.4 73.4 74.4 73.8 74.2 72.1 71.8 72.4 71.3 72.0 71.7 72.1 70.7 71.6 71.1 70.9 69.6 71.4 68.9 71.0 68.6 70.9 69.4 70.7 69.0 71.1 66.9 69.4 64.8 68.6 64.4 66.7 65.3 66.4 64.0 66.1 64.4 64.9 63.8 65.4 63.6 63.8 63.9 64.1 63.4 62.5 64.2 62.9 64.1 62.5 63.2 62.3 64.0 58.7 64.2 59.1 64.6 59.9 64.3 59.9 64.9 60.3 64.5 60.2 65.4 59.7 65.4 60.9 66.3 60.3 66.8 60.5 66.3 59.6 65.7 59.0 65.5 59.0 66.5 58.6 65.9 57.9 66.4 56.4 65.0 55.6 65.6 53.2 65.3 53.2 64.7 53.2 65.3 51.7 65.9 52.2 65.5 51.3 65.2 51.6 65.9 51.1 66.6 49.4 67.7 49.8 67.4 48.7 67.2 49.1 67.8 48.5 67.7 47.9 69.0 47.3 68.9 47.8 69.3 47.5 70.0 46.9 69.8 47.5 70.2 47.3 71.0 48.0 72.8 47.6 73.0 44.8 71.9 44.2 69.5 41.2 65.1 39.7 64.9 38.0 66.6 36.2 65.3 35.5 63.4 33.2 61.1 30.3 61.1 30.3 62.0 25.9 62.0 19.8 59.6 19.9 59.2 16.1 59.5 15.5 57.9 13.9 56.5 10.5 55.4 10.5 54.3 8.5 51.9 8.7 50.8 7.5 49.4 7.7 48.9 8.3 49.6 7.8 48.4 9.2 48.5 7.7 48.2 7.5 48.8 6.7 48.5 6.8 48.0 7.0 48.3 5.6 46.6 5.4 44.8 4.6 43.9 5.1 41.3 4.3 38.7 5.1 36.9 5.1 31.8 6.5 31.9 5.0 31.8 5.1 31.0 5.2 31.5 5.5 30.9 5.0 30.5 5.5 30.4 4.9 30.4 4.0 27.5 7.1 28.0 7.4 28.5 6.5 29.6 7.5 28.5 7.5 29.7 7.1 29.5 6.6 30.0 7.2 30.1 7.8 29.6 8.1 28.2 7.3 27.4 7.7 27.1 7.2 26.3z" fill="#ECFDF5" stroke="#14532D" stroke-width="1.3" stroke-linejoin="round"/><circle cx="17" cy="57" r="4.3" fill="#EF4444" stroke="#fff" stroke-width="1.4"/><circle cx="52" cy="70" r="4.3" fill="#F59E0B" stroke="#fff" stroke-width="1.4"/><circle cx="80" cy="74" r="4.3" fill="#EC4899" stroke="#fff" stroke-width="1.4"/><circle cx="72" cy="45" r="4.3" fill="#8B5CF6" stroke="#fff" stroke-width="1.4"/></svg></span><span class="tl">Where We Live</span></button>
+    <button class="tab t-orange" data-view="members" aria-label="Traders"><span class="rb">👥</span><span class="tl">Traders</span></button>
+    <button class="tab t-gold" data-view="goose" aria-label="Golden Goose"><span class="rb"><svg class="egg" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="get" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#FFFDF0"/><stop offset=".4" stop-color="#F5C542"/><stop offset="1" stop-color="#8A5A0B"/></radialGradient></defs><ellipse cx="50" cy="52" rx="28" ry="36" fill="url(#get)" stroke="#8A5A0B" stroke-width="2.2"/><path d="M30 66 L42 54 L50 60 L66 40" fill="none" stroke="#14532D" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 40 H67 V49" fill="none" stroke="#14532D" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M38 26 q4 -5 10 -6" stroke="#FFFDF0" stroke-width="3" stroke-linecap="round" fill="none" opacity=".8"/></svg></span><span class="tl">Golden Goose</span></button>
+    <button class="tab t-purple" data-view="settings" aria-label="Settings"><span class="rb">⚙️</span><span class="tl">Settings</span></button>
   </nav>
 </div>
 
@@ -803,9 +892,9 @@
       </div>
       <div class="panel">
         <h3>How editing works</h3>
-        <p class="help" style="margin:0;">Tap any friend's card, then <b>Manage</b> to edit, move the pin, or leave the group. Entries can be changed for 48 hours, then they lock so nothing gets changed by accident. Tap the lock button to unlock, make your change, and lock it again.</p>
+        <p class="help" style="margin:0;">Tap any friend's card, then <b>Manage</b> to edit, move the pin, or leave the group. Trades can be changed for 24 hours, pins and trips for 48 hours, then they lock so nothing gets changed by accident. Tap the lock button to unlock, make your change, and lock it again.</p>
       </div>
-    <div class="stamp-line" id="debug-stamp">build 2026-11-15-25</div>
+    <div class="stamp-line" id="debug-stamp">build 2026-11-15-51</div>
   </div>
 </div>
 <div id="print-area" aria-hidden="true"></div>
@@ -1005,11 +1094,12 @@
 
   /* ---------- 48-hour lock ---------- */
   const unlocked = new Set();   // unlocked during this visit with the lock button
-  const isOld = e => !e.ts || (Date.now() - e.ts) > LOCK_MS;
+  const lockMsFor = e => String(e.id || '').startsWith('t_') ? 24 * 60 * 60 * 1000 : LOCK_MS;   // trades: 24 h
+  const isOld = e => !e.ts || (Date.now() - e.ts) > lockMsFor(e);
   let allUnlocked = false;   // the lock in Settings: unlocks everything until locked again
   const isLocked = e => isOld(e) && !unlocked.has(e.id) && !allUnlocked;
   function lockUntilText(e){
-    const d = new Date((e.ts || 0) + LOCK_MS);
+    const d = new Date((e.ts || 0) + lockMsFor(e));
     return d.toLocaleString(undefined, { weekday:'short', month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
   }
 
@@ -1446,9 +1536,56 @@
     const n = String(p.name || '').trim().toLowerCase(); if(!n) return null;
     return [...trips].sort((a,b)=> (b.ts||0) - (a.ts||0)).find(t => String(t.name || '').trim().toLowerCase() === n) || null;
   }
+  // Japanese candlestick patterns, one per trader (same one every time).
+  // Each candle is [open, close, high, low] on a 0-10 price scale.
+  const CANDLE_PATTERNS = [
+    { name:'Hammer',               bias:'bull', c:[[7,6,7.5,4],[6,5,6.5,4.5],[4.6,5.2,5.4,1.2]] },
+    { name:'Morning Star',         bias:'bull', c:[[8,4,8.5,3.5],[3.6,3.2,4.2,2.6],[4,7.6,8,3.8]] },
+    { name:'Bullish Engulfing',    bias:'bull', c:[[6.5,5,7,4.5],[4.6,7.4,7.8,4.2]] },
+    { name:'Three White Soldiers', bias:'bull', c:[[3,5,5.4,2.6],[4.6,6.6,7,4.3],[6.2,8.4,8.8,6]] },
+    { name:'Dragonfly Doji',       bias:'bull', c:[[7,5,7.4,4.6],[5,5,5.2,1.5],[5.2,7,7.4,5]] },
+    { name:'Piercing Line',        bias:'bull', c:[[7.5,4,7.8,3.6],[3.2,6.2,6.5,2.8]] },
+    { name:'Shooting Star',        bias:'bear', c:[[3,5.5,6,2.6],[5.6,7.2,7.6,5.2],[7.4,7,9.8,6.8]] },
+    { name:'Evening Star',         bias:'bear', c:[[3,7,7.4,2.6],[7.4,7.8,8.4,7],[7.4,3.6,7.8,3.2]] },
+    { name:'Bearish Engulfing',    bias:'bear', c:[[5,6.5,7,4.5],[7.2,4.4,7.6,4]] },
+    { name:'Three Black Crows',    bias:'bear', c:[[8,6,8.4,5.6],[6.4,4.4,6.8,4],[4.8,2.6,5.2,2.2]] },
+    { name:'Hanging Man',          bias:'bear', c:[[3,5,5.4,2.6],[5,6.5,7,4.6],[7,6.5,7.2,3.6]] },
+    { name:'Doji',                 bias:'flat', c:[[4,6,6.4,3.6],[6.1,6.1,8,4.2],[6,4.5,6.4,4]] },
+    { name:'Spinning Top',         bias:'flat', c:[[4,5.5,5.8,3.6],[5.4,5.9,7.8,3.6],[5.8,5,6.2,4.6]] }
+  ];
+  // Different traders get different patterns while there are patterns left.
+  // The oldest members pick first, so a person's pattern doesn't change.
+  let patternOf = {};
+  function fnv(str){ let h = 2166136261; for(let i = 0; i < str.length; i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function assignPatterns(){
+    const used = new Set(); patternOf = {};
+    [...pins].sort((a,b)=> (a.ts||0) - (b.ts||0) || String(a.id).localeCompare(String(b.id))).forEach(p => {
+      let i = fnv(String(p.id)) % CANDLE_PATTERNS.length;
+      if(used.size < CANDLE_PATTERNS.length){ while(used.has(i)) i = (i + 1) % CANDLE_PATTERNS.length; }
+      used.add(i); patternOf[p.id] = CANDLE_PATTERNS[i];
+    });
+  }
+  function patternFor(id){ return patternOf[id] || CANDLE_PATTERNS[fnv(String(id)) % CANDLE_PATTERNS.length]; }
+  function patternSvg(pt){
+    const w = 70, h = 44, n = pt.c.length, gap = w / (n + 0.5), bw = gap * 0.45;
+    const y = v => h - 2 - (v / 10) * (h - 4);
+    return `<svg viewBox="0 0 ${w} ${h}" aria-hidden="true">` + pt.c.map(([o, c, hi, lo], i) => {
+      const x = gap * (i + 0.75), up = c >= o, top = y(Math.max(o, c)), bh = Math.max(1.2, Math.abs(y(o) - y(c)));
+      return `<line x1="${x}" x2="${x}" y1="${y(hi)}" y2="${y(lo)}" stroke="#333" stroke-width="1"/>` +
+             `<rect x="${x - bw / 2}" y="${top}" width="${bw}" height="${bh}" rx=".6" fill="${up ? '#16A34A' : '#DC2626'}" stroke="#333" stroke-width=".7"/>`;
+    }).join('') + '</svg>';
+  }
+
   // Post-it colors, and a random order picked once each time the page opens.
   const NOTE_COLORS = ['#FFF59D','#FFCCBC','#C8E6C9','#B3E5FC','#F8BBD0','#E1BEE7','#FFE0B2','#DCEDC8','#D1C4E9'];
   const shuffleKeys = {};
+  // Alphabetical, except Mo always comes first and Jamileh always last.
+  function traderRank(p){
+    const n = String(p.name || '').trim().toLowerCase();
+    if(n === 'mo' || n.startsWith('mo ')) return 0;
+    if(n.startsWith('jamileh')) return 2;
+    return 1;
+  }
   function shuffleKey(id){ return shuffleKeys[id] ?? (shuffleKeys[id] = Math.random()); }
   function stateFlagImg(p){
     const cc = String(p.country || 'US').toUpperCase(), st = String(p.state || '').toUpperCase();
@@ -1530,6 +1667,7 @@
     currentView = name;
     document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === name));
+    if(name === 'trades') setTimeout(fitTradeLines, 0);
     if(name === 'map' && map) setTimeout(()=>{ map.invalidateSize({ pan:false }); if(!userMovedMap) fitTraders(); }, 0);
   }
   $('tabbar').addEventListener('click', e => {
@@ -1648,7 +1786,8 @@
     valid.forEach(p => {
       const m = L.marker(pos[p.id], { icon:pinIcon(p), riseOnHover:true, keyboard:true, title:p.name });
       m.bindTooltip(esc(p.name), { permanent:true, direction:'top', offset:[0, 0], className:'pin-label' });
-      m.on('click', e =>{ if(addingTrip){ placeTripAt(e.latlng); return; } if(!moving) openMember(p.id); });
+      m.on('click', e =>{ if(addingTrip){ placeTripAt(e.latlng); return; } if(moving) return;
+        const tr = tripFor(p); if(tr) goToTrip(tr); else openMember(p.id); });
       m.addTo(pinsLayer);
       markers[p.id] = m;
     });
@@ -1657,7 +1796,7 @@
         html: pinSvg(tripColor(t)) + '<span class="trip-badge">✈️</span>' });
       const m = L.marker([t.lat, t.lon], { icon, title:`${t.name} in ${t.city}` });
       m.bindTooltip(esc(t.name), { permanent:true, direction:'top', offset:[0, 0], className:'pin-label trip-label' });
-      m.on('click', ()=>{ if(!moving && !addingTrip) openTrip(t.id); });
+      m.on('click', ()=>{ if(!moving && !addingTrip) goToTrip(t); });
       m.addTo(tripsLayer);
     });
     $('lg-members').textContent = valid.length;
@@ -1669,7 +1808,8 @@
      ===================================================================== */
   function renderMembers(){
     const q = $('member-search').value.trim().toLowerCase();
-    const list = [...pins].sort((a,b)=> shuffleKey(a.id) - shuffleKey(b.id))
+    assignPatterns();
+    const list = [...pins].sort((a,b)=> traderRank(a) - traderRank(b) || (a.name||'').localeCompare(b.name||'', undefined, { sensitivity:'base' }))
       .filter(p => !q || (p.name + ' ' + p.city + ' ' + p.state).toLowerCase().includes(q));
     $('member-count').textContent = pins.length + (pins.length === 1 ? ' trader' : ' traders');
     const grid = $('member-grid');
@@ -1685,21 +1825,29 @@
         <span class="note-pin" style="--pc:${c}"></span>
         ${isMine(p.id) ? '<i class="note-you">YOU</i>' : ''}
         <span class="note-name">${esc(p.name)}</span>
-        <span class="note-city">${esc(p.city || '')}${p.state ? ', ' + esc(p.state) : ''} ${stateFlagImg(p)}</span>
+        <span class="note-city">${esc(p.city || '')}${p.state ? ', ' + esc(p.state) : ''}</span>
         ${tr ? `<span class="note-trip" data-trip="${esc(tr.id)}" role="button" aria-label="${esc(p.name)} is in ${esc(tr.city)} — show on map">✈️ ${esc(tr.city)}</span>` : ''}
       </button>`;
     }).join('');
   }
   $('member-grid').addEventListener('click', e => { const tp = e.target.closest('[data-trip]');
     if(tp){
-      const t = trips.find(x => x.id === tp.dataset.trip);
-      if(t){ showView('map'); if(!tripsOn) setTripsOn(true); userMovedMap = true;
-        if(map){ map.invalidateSize({ pan:false }); map.flyTo([t.lat, t.lon], 9, { duration:1.2 }); } }
+      goToTrip(trips.find(x => x.id === tp.dataset.trip));
       return;
     }
-    const b = e.target.closest('.note'); if(b) openMember(b.dataset.id); });
+    const b = e.target.closest('.note'); if(!b) return;
+    // Someone traveling: go straight to where they are.
+    const who = pins.find(x => x.id === b.dataset.id), tr = who && tripFor(who);
+    if(tr){ goToTrip(tr); return; }
+    openMember(b.dataset.id); });
   $('member-search').addEventListener('input', renderMembers);
 
+  // Take the map straight to where someone is traveling (no card).
+  function goToTrip(t){
+    if(!t) return;
+    closeSheet(); showView('map'); if(!tripsOn) setTripsOn(true); userMovedMap = true;
+    if(map){ map.invalidateSize({ pan:false }); map.flyTo([t.lat, t.lon], Math.max(map.getZoom(), 10), { duration:1.2 }); }
+  }
   function sortedTrips(){ return [...trips].sort((a,b)=> (b.ts||0) - (a.ts||0)); }
   function renderTrips(){
     $('trip-count').textContent = trips.length ? `${trips.length} traveling` : '';
@@ -1722,14 +1870,10 @@
   }
   $('trip-grid').addEventListener('click', e => {
     const b = e.target.closest('.vt'); if(!b) return;
-    const t = trips.find(x => x.id === b.dataset.id); if(!t) return;
-    showView('map');
-    if(!tripsOn) setTripsOn(true);
-    userMovedMap = true;
-    if(map){ map.invalidateSize({ pan:false }); map.flyTo([t.lat, t.lon], 9, { duration:1.2 }); }
+    goToTrip(trips.find(x => x.id === b.dataset.id));
   });
 
-  function renderTicker(){
+  function renderTicker(){ return; /* the moving name bar was removed */
     const items = [...pins].sort((a,b)=> (b.ts||0) - (a.ts||0)).map(p =>
       `<span class="tk"><b>${esc(p.name)}</b><span class="up">▲</span> ${esc(p.city || '')}${p.state ? ', ' + esc(p.state) : ''}</span>`);
     sortedTrips().forEach(t => items.push(`<span class="tk"><b>${esc(t.name)}</b><span class="tr">✈</span> ${esc(t.city)} ${flagEmoji(t.cc)}</span>`));
@@ -1739,13 +1883,15 @@
     track.style.setProperty('--dur', Math.max(18, items.length * 4) + 's');
   }
 
-  function renderAll(){ renderMap(); renderMembers(); renderTrips(); renderTrades(); renderTicker(); refreshStatus(); }
+  function renderAll(){ renderMap(); renderMembers(); renderTrips(); renderTrades(); renderTicker(); refreshStatus(); renderTripManage(); }
 
   /* =====================================================================
      Bottom sheet: member details, with Manage tucked inside
      ===================================================================== */
   const sheet = $('sheet'), sheetBody = $('sheet-body');
-  function openSheet(html){ sheetBody.innerHTML = '<div class="grab"></div>' + html; sheet.classList.add('open'); sheetBody.scrollTop = 0; }
+  function openSheet(html){ sheetBody.innerHTML = '<div class="grab"></div><button class="sheet-x" aria-label="Close window" title="Close window"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7 H20 L12 19 Z" fill="#16A34A" stroke="#0F6B33" stroke-width="1.5" stroke-linejoin="round"/></svg></button>' + html; sheet.classList.add('open'); sheetBody.scrollTop = 0; }
+  // The ✕ in the corner closes any pop-up window.
+  sheetBody.addEventListener('click', e => { if(e.target.closest('.sheet-x')){ e.stopPropagation(); closeSheet(); } }, true);
   function closeSheet(){ sheet.classList.remove('open'); sheetBody.innerHTML = ''; }
   $('sheet-back').addEventListener('click', closeSheet);
   document.addEventListener('keydown', e => { if(e.key === 'Escape') closeSheet(); });
@@ -1756,7 +1902,7 @@
     }
     const locked = isLocked(entry);
     return `<div class="lock-row"><div class="txt">${locked
-        ? `🔒 Locked &mdash; this ${noun} was added more than 48 hours ago. Tap the lock to unlock it.`
+        ? `🔒 Locked &mdash; this ${noun} is past its edit window. Tap the lock to unlock it.`
         : `🔓 Unlocked. Make your change, then tap the lock to lock it again.`}</div>
       <button class="lock-btn ${locked ? 'locked' : ''}" data-act="lock" aria-label="${locked ? 'Unlock' : 'Lock'}">${locked ? ICON.lock : ICON.unlock}</button></div>`;
   }
@@ -2019,10 +2165,7 @@
       }catch(e2){ return false; }
     }
   }
-  function flashCopied(btn, label){
-    btn.classList.add('done'); btn.innerHTML = COPY_SVG + 'Copied';
-    setTimeout(()=>{ btn.classList.remove('done'); btn.innerHTML = COPY_SVG + (label || 'Copy'); }, 1500);
-  }
+  function flashCopied(){ /* the Copy button keeps saying Copy */ }
 
   // Rainbow color per ticker: the same symbol always gets the same color.
   const RAINBOW = ['#FFB3BA','#FFC9A8','#FFE0A3','#FFF1A6','#DDF2A6','#B8EDB9','#A8E8D6','#A6E3F2',
@@ -2106,7 +2249,7 @@
         <div class="w">${p ? esc(p.side + ' ' + p.qty) + (p.strategy ? ' · ' + esc(p.strategy) : '') + (p.price ? ' · @' + esc(p.price) : '') : esc(t.text.slice(0, 40))}</div></div></div>
       <div class="sh-acts" style="margin-top:18px">
         <button class="btn" data-ans="no">Cancel</button>
-        <button class="btn bull" data-ans="yes"><span class="usd">$</span>Yes, close it</button>
+        <button class="btn bull" data-ans="yes"><span class="usd">$</span>Yes, close trade</button>
       </div>`);
     sheetBody.onclick = e => {
       const b = e.target.closest('[data-ans]'); if(!b) return;
@@ -2134,8 +2277,33 @@
     $('trade-list').innerHTML = !trades.length
       ? '<div class="empty">No trades yet &mdash; paste one above 📈</div>'
       : (list.length ? list.map(tradeCardHtml).join('') : '<div class="empty">No trades match that search.</div>');
+    fitTradeLines();
   }
+  // Shrink each trade line just enough to fit on one row (down to a size that
+  // is still easy to read). Only very long lines on a narrow phone wrap.
+  const TOS_MAX = 10.5, TOS_MIN = 8;
+  function fitTradeLines(){
+    if(currentView !== 'trades') return;
+    document.querySelectorAll('.trw2-tos').forEach(el => {
+      el.classList.add('one-line');
+      let size = TOS_MAX; el.style.fontSize = size + 'px';
+      while(el.scrollWidth > el.clientWidth + 1 && size > TOS_MIN){ size -= 0.25; el.style.fontSize = size + 'px'; }
+      if(el.scrollWidth > el.clientWidth + 1) el.classList.remove('one-line');
+    });
+  }
+  let fitTimer = null;
+  window.addEventListener('resize', ()=>{ clearTimeout(fitTimer); fitTimer = setTimeout(fitTradeLines, 120); });
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitTradeLines);
   $('trade-search').addEventListener('input', renderTrades);
+  // Trade date: today unless changed. Stored as YYYY-MM-DD.
+  function todayISO(){ const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
+  function tradeDateText(t, opts){
+    const iso = t.date || (t.ts ? new Date(new Date(t.ts).getTime() - new Date(t.ts).getTimezoneOffset() * 60000).toISOString().slice(0, 10) : '');
+    if(!iso) return '';
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, opts || { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+  }
+  $('trade-date').value = todayISO();
   function setTradeDrop(open){
     $('trade-drop-panel').hidden = !open;
     $('trade-drop').setAttribute('aria-expanded', open);
@@ -2150,8 +2318,7 @@
     if(c){
       e.stopPropagation();
       const t = trades.find(x => x.id === c.dataset.copy); if(!t) return;
-      if(await copyText(t.text)){ c.classList.add('done'); c.innerHTML = COPY_SVG + 'Copied'; setTimeout(()=>{ c.classList.remove('done'); c.innerHTML = COPY_SVG + 'Copy'; }, 1500); }
-      else toast('⚠️', "Couldn't copy", 'Press and hold the text to copy it.');
+      if(!(await copyText(t.text))) toast('⚠️', "Couldn't copy", 'Press and hold the text to copy it.');
       return;
     }
     const tile = e.target.closest('.trw2'); if(tile){ openTrade(tile.dataset.id); return; }
@@ -2161,8 +2328,7 @@
     const list = filteredTrades(); if(!list.length) return;
     const ok = await copyText(list.map(t => t.text).join('\n'));
     const b = e.currentTarget;
-    if(ok){ b.textContent = `Copied ${list.length}`; setTimeout(()=> b.textContent = 'Copy all', 1500); }
-    else toast('⚠️', "Couldn't copy", 'Your browser blocked it.');
+    if(!ok) toast('⚠️', "Couldn't copy", 'Your browser blocked it.');
   });
 
   $('trade-form').addEventListener('submit', async e => {
@@ -2172,17 +2338,18 @@
     const parts = splitTrades($('trade-text').value);
     if(!parts.length) return setStatus(st, 'Paste a trade first.', 'error');
     const note = $('trade-note').value.trim();
+    const tdate = $('trade-date').value || todayISO();
     $('trade-add').disabled = true;
     const latest = await loadTrades(); if(latest.ok) trades = latest.data;
     const now = Date.now();
     parts.forEach((text, i) => {
       const id = 't_' + now + '_' + i + '_' + Math.random().toString(36).slice(2,6);
-      trades.push({ id, text, note, ts: now + i });
+      trades.push({ id, text, note, date: tdate, ts: now + i });
       addMine(id);
     });
     const ok = await saveTrades(trades);
     $('trade-add').disabled = false;
-    $('trade-text').value = ''; $('trade-note').value = ''; tradeHint();
+    $('trade-text').value = ''; $('trade-note').value = ''; $('trade-date').value = todayISO(); tradeHint();
     renderTrades();
     setStatus(st, ok ? `Added ${parts.length} trade${parts.length === 1 ? '' : 's'} 📈` : "Saved on this phone, but couldn't reach the group yet.", ok ? 'success' : 'error');
     if(ok){ setTimeout(()=>{ setTradeDrop(false); setStatus(st, ''); }, 900); toast('📈', `Added ${parts.length} trade${parts.length === 1 ? '' : 's'}`, ''); }
@@ -2196,12 +2363,12 @@
       ${(()=>{ const p = parseTOS(t.text.split('\n')[0]); const side = t.closed ? 'closed' : (p ? p.side.toLowerCase() : 'other');
         return `<div class="sh-head"><div class="tt-badge k3d" style="${tickerStyle(p ? p.symbol : 'TRADE')}">${esc(p ? p.symbol : 'TRADE')}</div>
           <div class="sh-title"><div class="n" style="font-size:21px">${p ? esc(p.side + ' ' + p.qty) + (p.strategy ? ' · ' + esc(p.strategy) : '') : 'Trade'}</div>
-          <div class="w">${p && p.price ? '@' + esc(p.price) + ' ' + esc(p.terms) + '<br>' : ''}📅 ${esc(postedDate(t.ts))}</div></div></div>`; })()}
+          <div class="w">${p && p.price ? '@' + esc(p.price) + ' ' + esc(p.terms) + '<br>' : ''}📅 Trade date: <b>${esc(tradeDateText(t))}</b></div></div></div>`; })()}
       <div class="tr-raw" style="font-size:13px;margin-top:12px;display:block;-webkit-line-clamp:unset;overflow:visible">${esc(t.text)}</div>
       ${t.note ? `<div class="tr-note">“${esc(t.note)}”</div>` : ''}
       ${t.closed ? `<div class="tr-result" style="margin-top:8px">${resultText(t.closed)}</div>` : ''}
       <div class="sh-acts"><button class="btn bull" data-act="copy">${COPY_SVG}Copy for TOS</button>
-        ${t.closed ? '' : `<button class="btn" data-act="close"><span class="usd">$</span>Close</button>`}</div>
+        ${t.closed ? '' : `<button class="btn" data-act="close"><span class="usd">$</span>Close Trade</button>`}</div>
       <button class="manage-toggle" data-act="toggle" aria-expanded="${!!opts.manage}"><span style="display:flex;gap:8px;align-items:center">${ICON.gear}Manage this trade</span>${ICON.chev}</button>
       <div class="manage ${opts.manage ? 'open' : ''}" id="manage">
         ${lockRowHtml(t, 'trade')}
@@ -2244,6 +2411,8 @@
       <form id="te-form" autocomplete="off">
         <label class="fld" for="te-text">TOS order</label>
         <textarea class="inp" id="te-text" spellcheck="false" autocapitalize="characters">${esc(t.text)}</textarea>
+        <label class="fld" for="te-date">Trade date</label>
+        <input class="inp" id="te-date" type="date" value="${esc(t.date || '')}">
         <label class="fld" for="te-note">Note</label>
         <input class="inp" id="te-note" maxlength="80" value="${esc(t.note || '')}">
         <div class="sh-acts"><button type="button" class="btn" id="te-cancel">Cancel</button><button type="submit" class="btn bull" id="te-save">Save</button></div>
@@ -2259,7 +2428,7 @@
       $('te-save').disabled = true;
       const latest = await loadTrades(); if(latest.ok) trades = latest.data;
       const cur = trades.find(x => x.id === id);
-      if(cur){ cur.text = text; cur.note = $('te-note').value.trim(); }
+      if(cur){ cur.text = text; cur.note = $('te-note').value.trim(); if($('te-date').value) cur.date = $('te-date').value; }
       const ok = await saveTrades(trades);
       renderTrades(); openTrade(id, { manage:true });
       sheetMsg(ok ? 'Saved ✓' : "Saved on this phone, but couldn't reach the group yet.", ok ? 'success' : 'error');
@@ -2288,6 +2457,8 @@
     };
   }
   $('trips-back').addEventListener('click', ()=> showView('map'));
+  $('join-open').addEventListener('click', ()=> showView('join'));
+  $('join-back').addEventListener('click', ()=> showView('members'));
   $('trip-add-open').addEventListener('click', ()=> startAddTrip());
 
   /* ---------- Add a trip by tapping the map ---------- */
@@ -2400,7 +2571,14 @@
     toast('✈️', `${name} is in ${trip.city}!`, ok ? 'The trip is on the map. Remove it when back home.' : "Saved on this phone, but couldn't reach the group yet.");
   });
   $('lg-group').addEventListener('click', ()=> showView('members'));
-  $('lg-travel').addEventListener('click', ()=> showView('trips'));
+  // "✈️ N traveling": go straight to them on the map.
+  $('lg-travel').addEventListener('click', ()=>{
+    if(!trips.length){ toast('✈️', 'Nobody is traveling right now', ''); return; }
+    if(trips.length === 1){ goToTrip(trips[0]); return; }
+    showView('map'); if(!tripsOn) setTripsOn(true); userMovedMap = true;
+    if(map){ map.invalidateSize({ pan:false });
+      map.flyToBounds(L.latLngBounds(trips.map(t => [t.lat, t.lon])), { padding:[60, 60], maxZoom:9, duration:1.2 }); }
+  });
 
   /* ---------- Trip sheet ---------- */
   function openTrip(id, opts){
@@ -2543,17 +2721,63 @@
     b.setAttribute('aria-label', allUnlocked ? 'Lock editing again' : 'Unlock editing');
     $('global-lock-txt').innerHTML = allUnlocked
       ? '🔓 <b>Unlocked.</b> Every pin, trip and trade can be changed or deleted. Tap the lock when you are done.'
-      : '🔒 <b>Locked.</b> Entries older than 48 hours can\'t be changed. Tap the lock to unlock everything, make your changes, then lock it back.';
+      : '🔒 <b>Locked.</b> Trades lock after 24 hours, pins and trips after 48 hours. Tap the lock to unlock everything, make your changes, then lock it back.';
     document.body.classList.toggle('all-unlocked', allUnlocked);
   }
   $('global-lock-btn').addEventListener('click', ()=>{
     allUnlocked = !allUnlocked;
     if(!allUnlocked) unlocked.clear();
-    renderGlobalLock();
+    renderGlobalLock(); renderTripManage();
     toast(allUnlocked ? '🔓' : '🔒', allUnlocked ? 'Editing unlocked' : 'Locked again', allUnlocked ? 'Remember to lock it back when you are done.' : 'Older entries are protected again.');
   });
   $('unlocked-pill').addEventListener('click', ()=> showView('settings'));
   renderGlobalLock();
+
+  /* ---------- Background: random Japanese candlestick patterns ---------- */
+  function renderBackgroundPatterns(){
+    const svg = $('app-bg'); if(!svg) return;
+    const W = 400, H = 900, cols = 3, rows = 8, cw = W / cols, rh = H / rows;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+    const bill = (w, h) => `
+      <rect width="${w}" height="${h}" rx="3" fill="#C9E8B4" stroke="#2F6B3A" stroke-width="1.6"/>
+      <rect x="4" y="4" width="${w - 8}" height="${h - 8}" rx="2" fill="none" stroke="#2F6B3A" stroke-width="1" stroke-dasharray="3 2"/>
+      <ellipse cx="${w / 2}" cy="${h / 2}" rx="${h * 0.32}" ry="${h * 0.36}" fill="#A6D58A" stroke="#2F6B3A" stroke-width="1.2"/>
+      <text x="${w / 2}" y="${h / 2 + h * 0.15}" text-anchor="middle" font-family="Georgia,serif" font-weight="700" font-size="${h * 0.42}" fill="#2F6B3A">$</text>
+      <text x="9" y="${h * 0.32}" font-family="Georgia,serif" font-weight="700" font-size="${h * 0.2}" fill="#2F6B3A">100</text>
+      <text x="${w - 9}" y="${h - 7}" text-anchor="end" font-family="Georgia,serif" font-weight="700" font-size="${h * 0.2}" fill="#2F6B3A">100</text>`;
+    let out = '';
+    for(let r = 0; r < rows; r++) for(let c = 0; c < cols; c++){
+      if(Math.random() < 0.4) continue;                         // leave some gaps
+      const w = 70 + Math.random() * 30, h = w * 0.45;
+      const x = c * cw + Math.random() * (cw - w), y = r * rh + Math.random() * (rh - h);
+      const rot = (Math.random() - 0.5) * 50, op = 0.13 + Math.random() * 0.09;
+      out += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(1)} ${w / 2} ${h / 2})" opacity="${op.toFixed(2)}">${bill(w, h)}</g>`;
+    }
+    svg.innerHTML = out;
+  }
+
+  /* ---------- Settings: trips list ---------- */
+  function renderTripManage(){
+    const el = $('trip-manage'); if(!el) return;
+    if(!trips.length){ el.innerHTML = '<p class="help" style="margin:0">Nobody is traveling right now.</p>'; return; }
+    el.innerHTML = sortedTrips().map(t => `<div class="tm-row">
+        <span class="tm-flag">${flagEmoji(t.cc)}</span>
+        <span class="tm-tx"><b>${esc(t.name)}</b><span>${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}</span></span>
+        <button class="btn bear tm-btn" data-rm="${esc(t.id)}" ${isLocked(t) ? 'disabled title="Locked — unlock above to remove"' : ''}>Back home</button>
+      </div>`).join('');
+  }
+  $('trip-manage').addEventListener('click', async e => {
+    const b = e.target.closest('[data-rm]'); if(!b || b.disabled) return;
+    const t = trips.find(x => x.id === b.dataset.rm); if(!t) return;
+    if(offline()){ toast('✈️', "You're offline", 'This needs an internet connection.'); return; }
+    if(!confirm(`Remove ${t.name}'s trip to ${t.city}? (Their home pin stays.)`)) return;
+    const latest = await loadTrips(); if(latest.ok) trips = latest.data;
+    trips = trips.filter(x => x.id !== t.id);
+    const ok = await saveTrips(trips);
+    renderAll();
+    toast('🏡', 'Welcome home!', ok ? 'Trip removed.' : "Removed here, but couldn't reach the group yet.");
+  });
 
   /* ---------- Settings: print trades ---------- */
   $('print-trades').addEventListener('click', ()=>{
@@ -2569,14 +2793,14 @@
         <td class="sym">${esc(p ? p.symbol : '')}</td>
         <td>${p ? esc(p.side + ' ' + p.qty) + (p.strategy ? '<br><small>' + esc(p.strategy) + '</small>' : '') : ''}</td>
         <td>${p && p.price ? '@' + esc(p.price) + ' ' + esc(p.terms) : ''}</td>
-        <td>${esc(d.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' }))}<br><small>${esc(d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' }))}</small></td>
+        <td>${esc(tradeDateText(t, { month:'short', day:'numeric', year:'numeric' }))}</td>
         <td>${t.closed ? 'Closed' + (t.closed.ts ? '<br><small>' + esc(new Date(t.closed.ts).toLocaleDateString(undefined, { month:'short', day:'numeric' })) + '</small>' : '') : 'Open'}</td>
       </tr>
       <tr class="tos"><td colspan="5"><code>${esc(t.text)}</code>${t.note ? `<div class="note">Note: ${esc(t.note)}</div>` : ''}</td></tr>`;
     }).join('');
     $('print-area').innerHTML = `<h1>Mo's Friends and Family — ${which === 'open' ? 'Open trades' : 'All trades'}</h1>
       <p class="sub">${list.length} trade${list.length === 1 ? '' : 's'} · printed ${esc(now.toLocaleString(undefined, { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' }))}</p>
-      <table><thead><tr><th>Symbol</th><th>Trade</th><th>Price</th><th>Posted</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>Symbol</th><th>Trade</th><th>Price</th><th>Date</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
       <p class="sub">© 2026 Thor</p>`;
     window.print();
   });
@@ -2630,7 +2854,7 @@
      Start up, then check for changes from the group every few seconds
      ===================================================================== */
   (async function init(){
-    renderHeaderChart();
+    renderBackgroundPatterns();
     initMap();
     const [pr, tr, td] = await Promise.all([loadPinsOrKeep(), loadTrips(), loadTrades()]);
     pins = pr.ok ? pr.data : [];
@@ -2751,6 +2975,16 @@
       console.warn('Offline support could not start:', e);
     }
   });
+})();
+</script>
+<script>
+// Make sure this page itself is saved for offline use, whatever the file is called.
+(function(){
+  if(!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
+  navigator.serviceWorker.ready.then(reg => {
+    const url = location.href.split('#')[0].split('?')[0];
+    if(reg.active) reg.active.postMessage({ type:'cache-page', url });
+  }).catch(()=>{});
 })();
 </script>
 </body>
