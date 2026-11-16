@@ -38,6 +38,7 @@
   }
   button{ font:inherit; color:inherit; cursor:pointer; }
   .app-bg{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
+  body.on-goose .app-bg{ display:none; }
   .app > *:not(.app-bg){ position:relative; z-index:1; }
   .app{
     position:fixed; inset:0;
@@ -305,6 +306,7 @@
   .tab.t-gold  { --c1:#34D399; --c2:#059669; --c3:#064E3B; }
   .tab.t-purple{ --c1:#2E6B52; --c2:#14532D; --c3:#052E16; }
   .tab.t-cal{ --c1:#A7F3D0; --c2:#34D399; --c3:#047857; --glow:rgba(74,222,128,0.26); }
+  .tab .rb svg.mcal{ width:80% !important; height:80% !important; flex-shrink:0; filter:drop-shadow(0 1px 1px rgba(0,0,0,0.3)); }
   .tab .rb svg.egg{ width:84%; height:84%; }
   .goose-icon svg.egg{ width:78%; height:78%; }
   .tab, .tab.active, .tab:active{ background:none !important; border:none !important; box-shadow:none !important; opacity:1 !important; filter:none !important; transform:none !important; }
@@ -552,6 +554,8 @@
   .note-name{ font-family:'Caveat',cursive; font-weight:700; font-size:14.5px; line-height:1; color:#2B2B2B; word-break:break-word; }
   .note-city{ font-family:'Caveat',cursive; font-size:10.5px; line-height:1.1; color:#4A4A4A; }
   .note-city .sb-flag{ display:block; width:16px; height:11px; margin:2px auto 0; }
+  .note-crown{ position:absolute; top:-15px; left:-9px; width:30px; height:23px; transform:rotate(-24deg); z-index:3;
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,0.4)); pointer-events:none; }
   .note-you{ position:absolute; top:3px; right:3px; font-style:normal; font-size:7.5px; font-weight:800; background:var(--gold); color:#fff; padding:1px 4px; border-radius:4px; }
   .note-trip{ margin-top:2px; font-size:8px; font-weight:700; padding:1px 3px; border-radius:6px; background:rgba(255,255,255,0.6); color:#2B2B2B;
     border:1px solid rgba(0,0,0,0.12); max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -695,14 +699,44 @@
     background:linear-gradient(180deg,#2E6B52,#0D2A1F); border:1px solid #071A12; box-shadow:0 5px 0 #071A12, 0 8px 14px rgba(0,0,0,0.3), inset 0 2px 0 rgba(255,255,255,0.3); }
   .goose-card h2{ margin:0 0 6px; font-family:'Baloo 2',sans-serif; font-size:28px; color:#7A4B00; }
   .goose-card p{ margin:0; font-size:14.5px; font-weight:600; color:#7A4B00; line-height:1.4; }
-  #view-goose .goose-card{ display:flex; align-items:center; justify-content:center; gap:14px; padding:14px 16px; text-align:left; margin-bottom:10px; }
+  #view-goose .goose-card{ display:grid; grid-template-columns:auto 1fr auto; align-items:center; column-gap:10px; padding:14px 16px 12px; text-align:left; margin-bottom:12px; }
+  .gg-sub{ font-size:15px; color:#5B3A00; line-height:1.25; } .gg-sub b{ color:#3F2A00; }
+  .gg-points{ grid-column:1 / -1; list-style:none; margin:12px 0 0; padding:10px 2px 0; border-top:1px dashed rgba(138,90,11,0.35);
+    display:flex; flex-direction:column; gap:5px; }
+  .gg-points li{ display:flex; align-items:center; gap:8px; font-size:15px; color:#5B3A00; line-height:1.25; }
+  .gg-points b{ color:#3F2A00; }
+  .gg-hint{ text-align:center; margin:2px 0 10px; font-size:13px; font-weight:700; color:#D9F5E4; letter-spacing:.02em; }
   #view-goose .goose-icon{ width:64px; height:64px; margin:0; flex-shrink:0; }
   #view-goose .goose-card h2{ font-size:27px; margin:0; line-height:1; }
-  .gg-head{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; }
+  .gg-head{ display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; }
+  #view-goose .gg-head h2{ white-space:nowrap; font-size:26px; }
+  #view-goose .goose-card .goose-icon{ width:54px; height:54px; }
+  #view-goose .goose-card{ padding:12px 12px !important; }
   /* little golden eggs scattered behind the Golden Goose page */
   #view-goose{ background-image:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTAiIGhlaWdodD0iMTkwIiB2aWV3Qm94PSIwIDAgMTkwIDE5MCI+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJnMCIgY3g9Ii4zOCIgY3k9Ii4zIiByPSIuODUiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI0ZGRkRGMCIvPjxzdG9wIG9mZnNldD0iLjQ1IiBzdG9wLWNvbG9yPSIjRkZFOUE4Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjQzk4QTEyIi8+PC9yYWRpYWxHcmFkaWVudD48cmFkaWFsR3JhZGllbnQgaWQ9ImcxIiBjeD0iLjM4IiBjeT0iLjMiIHI9Ii44NSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkZGREYwIi8+PHN0b3Agb2Zmc2V0PSIuNDUiIHN0b3AtY29sb3I9IiNGNUM1NDIiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4QTVBMEIiLz48L3JhZGlhbEdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iZzIiIGN4PSIuMzgiIGN5PSIuMyIgcj0iLjg1Ij48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNGRkZERjAiLz48c3RvcCBvZmZzZXQ9Ii40NSIgc3RvcC1jb2xvcj0iI0ZGRDg2QiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0E4NkUwRSIvPjwvcmFkaWFsR3JhZGllbnQ+PHJhZGlhbEdyYWRpZW50IGlkPSJnMyIgY3g9Ii4zOCIgY3k9Ii4zIiByPSIuODUiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI0ZGRkRGMCIvPjxzdG9wIG9mZnNldD0iLjQ1IiBzdG9wLWNvbG9yPSIjRTBBNTI2Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjN0E0QjAwIi8+PC9yYWRpYWxHcmFkaWVudD48cmFkaWFsR3JhZGllbnQgaWQ9Imc0IiBjeD0iLjM4IiBjeT0iLjMiIHI9Ii44NSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkZGREYwIi8+PHN0b3Agb2Zmc2V0PSIuNDUiIHN0b3AtY29sb3I9IiNGQ0QzNEQiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM5MjYwMEEiLz48L3JhZGlhbEdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iZzUiIGN4PSIuMzgiIGN5PSIuMyIgcj0iLjg1Ij48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNGRkZERjAiLz48c3RvcCBvZmZzZXQ9Ii40NSIgc3RvcC1jb2xvcj0iI0ZERTY4QSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0I3NzkxRiIvPjwvcmFkaWFsR3JhZGllbnQ+PHJhZGlhbEdyYWRpZW50IGlkPSJnNiIgY3g9Ii4zOCIgY3k9Ii4zIiByPSIuODUiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI0ZGRkRGMCIvPjxzdG9wIG9mZnNldD0iLjQ1IiBzdG9wLWNvbG9yPSIjRkZFOUE4Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjQzk4QTEyIi8+PC9yYWRpYWxHcmFkaWVudD48cmFkaWFsR3JhZGllbnQgaWQ9Imc3IiBjeD0iLjM4IiBjeT0iLjMiIHI9Ii44NSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRkZGREYwIi8+PHN0b3Agb2Zmc2V0PSIuNDUiIHN0b3AtY29sb3I9IiNGNUM1NDIiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4QTVBMEIiLz48L3JhZGlhbEdyYWRpZW50PjxyYWRpYWxHcmFkaWVudCBpZD0iZzgiIGN4PSIuMzgiIGN5PSIuMyIgcj0iLjg1Ij48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNGRkZERjAiLz48c3RvcCBvZmZzZXQ9Ii40NSIgc3RvcC1jb2xvcj0iI0ZGRDg2QiIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0E4NkUwRSIvPjwvcmFkaWFsR3JhZGllbnQ+PHJhZGlhbEdyYWRpZW50IGlkPSJnOSIgY3g9Ii4zOCIgY3k9Ii4zIiByPSIuODUiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI0ZGRkRGMCIvPjxzdG9wIG9mZnNldD0iLjQ1IiBzdG9wLWNvbG9yPSIjRTBBNTI2Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjN0E0QjAwIi8+PC9yYWRpYWxHcmFkaWVudD48cmFkaWFsR3JhZGllbnQgaWQ9ImcxMCIgY3g9Ii4zOCIgY3k9Ii4zIiByPSIuODUiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI0ZGRkRGMCIvPjxzdG9wIG9mZnNldD0iLjQ1IiBzdG9wLWNvbG9yPSIjRkNEMzREIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjOTI2MDBBIi8+PC9yYWRpYWxHcmFkaWVudD48cmFkaWFsR3JhZGllbnQgaWQ9ImcxMSIgY3g9Ii4zOCIgY3k9Ii4zIiByPSIuODUiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI0ZGRkRGMCIvPjxzdG9wIG9mZnNldD0iLjQ1IiBzdG9wLWNvbG9yPSIjRkRFNjhBIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjQjc3OTFGIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+PGcgb3BhY2l0eT0iLjgiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE0IDE4KSByb3RhdGUoLTIwKSBzY2FsZSgwLjc1KSI+PGVsbGlwc2Ugcng9IjExIiByeT0iMTQuNSIgZmlsbD0idXJsKCNnMCkiIHN0cm9rZT0iI0M5OEExMiIgc3Ryb2tlLXdpZHRoPSIxIi8+PHBhdGggZD0iTS01IC04IHEyIC0zIDUgLTMuNSIgc3Ryb2tlPSIjRkZGREYwIiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIiBvcGFjaXR5PSIuODUiLz48L2c+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNzAgMTApIHJvdGF0ZSgxNSkgc2NhbGUoMC41NSkiPjxlbGxpcHNlIHJ4PSIxMSIgcnk9IjE0LjUiIGZpbGw9InVybCgjZzEpIiBzdHJva2U9IiM4QTVBMEIiIHN0cm9rZS13aWR0aD0iMSIvPjxwYXRoIGQ9Ik0tNSAtOCBxMiAtMyA1IC0zLjUiIHN0cm9rZT0iI0ZGRkRGMCIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iLjg1Ii8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEyOCAzMCkgcm90YXRlKC04KSBzY2FsZSgwLjgpIj48ZWxsaXBzZSByeD0iMTEiIHJ5PSIxNC41IiBmaWxsPSJ1cmwoI2cyKSIgc3Ryb2tlPSIjQTg2RTBFIiBzdHJva2Utd2lkdGg9IjEiLz48cGF0aCBkPSJNLTUgLTggcTIgLTMgNSAtMy41IiBzdHJva2U9IiNGRkZERjAiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiIGZpbGw9Im5vbmUiIG9wYWNpdHk9Ii44NSIvPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxNzAgOCkgcm90YXRlKDI1KSBzY2FsZSgwLjUpIj48ZWxsaXBzZSByeD0iMTEiIHJ5PSIxNC41IiBmaWxsPSJ1cmwoI2czKSIgc3Ryb2tlPSIjN0E0QjAwIiBzdHJva2Utd2lkdGg9IjEiLz48cGF0aCBkPSJNLTUgLTggcTIgLTMgNSAtMy41IiBzdHJva2U9IiNGRkZERjAiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiIGZpbGw9Im5vbmUiIG9wYWNpdHk9Ii44NSIvPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg4IDgwKSByb3RhdGUoMTApIHNjYWxlKDAuNTUpIj48ZWxsaXBzZSByeD0iMTEiIHJ5PSIxNC41IiBmaWxsPSJ1cmwoI2c0KSIgc3Ryb2tlPSIjOTI2MDBBIiBzdHJva2Utd2lkdGg9IjEiLz48cGF0aCBkPSJNLTUgLTggcTIgLTMgNSAtMy41IiBzdHJva2U9IiNGRkZERjAiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiIGZpbGw9Im5vbmUiIG9wYWNpdHk9Ii44NSIvPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5NiA3Mikgcm90YXRlKC0zMCkgc2NhbGUoMC42NSkiPjxlbGxpcHNlIHJ4PSIxMSIgcnk9IjE0LjUiIGZpbGw9InVybCgjZzUpIiBzdHJva2U9IiNCNzc5MUYiIHN0cm9rZS13aWR0aD0iMSIvPjxwYXRoIGQ9Ik0tNSAtOCBxMiAtMyA1IC0zLjUiIHN0cm9rZT0iI0ZGRkRGMCIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iLjg1Ii8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE1NSA5NSkgcm90YXRlKDIwKSBzY2FsZSgwLjcpIj48ZWxsaXBzZSByeD0iMTEiIHJ5PSIxNC41IiBmaWxsPSJ1cmwoI2c2KSIgc3Ryb2tlPSIjQzk4QTEyIiBzdHJva2Utd2lkdGg9IjEiLz48cGF0aCBkPSJNLTUgLTggcTIgLTMgNSAtMy41IiBzdHJva2U9IiNGRkZERjAiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiIGZpbGw9Im5vbmUiIG9wYWNpdHk9Ii44NSIvPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg0MCAxMzApIHJvdGF0ZSgtMTIpIHNjYWxlKDAuOCkiPjxlbGxpcHNlIHJ4PSIxMSIgcnk9IjE0LjUiIGZpbGw9InVybCgjZzcpIiBzdHJva2U9IiM4QTVBMEIiIHN0cm9rZS13aWR0aD0iMSIvPjxwYXRoIGQ9Ik0tNSAtOCBxMiAtMyA1IC0zLjUiIHN0cm9rZT0iI0ZGRkRGMCIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iLjg1Ii8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDExOCAxNTApIHJvdGF0ZSgzNSkgc2NhbGUoMC41NSkiPjxlbGxpcHNlIHJ4PSIxMSIgcnk9IjE0LjUiIGZpbGw9InVybCgjZzgpIiBzdHJva2U9IiNBODZFMEUiIHN0cm9rZS13aWR0aD0iMSIvPjxwYXRoIGQ9Ik0tNSAtOCBxMiAtMyA1IC0zLjUiIHN0cm9rZT0iI0ZGRkRGMCIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iLjg1Ii8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDE3NiAxNjUpIHJvdGF0ZSgtMjUpIHNjYWxlKDAuNikiPjxlbGxpcHNlIHJ4PSIxMSIgcnk9IjE0LjUiIGZpbGw9InVybCgjZzkpIiBzdHJva2U9IiM3QTRCMDAiIHN0cm9rZS13aWR0aD0iMSIvPjxwYXRoIGQ9Ik0tNSAtOCBxMiAtMyA1IC0zLjUiIHN0cm9rZT0iI0ZGRkRGMCIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iLjg1Ii8+PC9nPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIwIDE3Mikgcm90YXRlKDUpIHNjYWxlKDAuNSkiPjxlbGxpcHNlIHJ4PSIxMSIgcnk9IjE0LjUiIGZpbGw9InVybCgjZzEwKSIgc3Ryb2tlPSIjOTI2MDBBIiBzdHJva2Utd2lkdGg9IjEiLz48cGF0aCBkPSJNLTUgLTggcTIgLTMgNSAtMy41IiBzdHJva2U9IiNGRkZERjAiIHN0cm9rZS13aWR0aD0iMS42IiBzdHJva2UtbGluZWNhcD0icm91bmQiIGZpbGw9Im5vbmUiIG9wYWNpdHk9Ii44NSIvPjwvZz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSg3MCAxMDUpIHJvdGF0ZSgwKSBzY2FsZSgwLjQ1KSI+PGVsbGlwc2Ugcng9IjExIiByeT0iMTQuNSIgZmlsbD0idXJsKCNnMTEpIiBzdHJva2U9IiNCNzc5MUYiIHN0cm9rZS13aWR0aD0iMSIvPjxwYXRoIGQ9Ik0tNSAtOCBxMiAtMyA1IC0zLjUiIHN0cm9rZT0iI0ZGRkRGMCIgc3Ryb2tlLXdpZHRoPSIxLjYiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iLjg1Ii8+PC9nPjwvZz48L3N2Zz4="); background-size:190px 190px; background-repeat:repeat; background-attachment:local; }
+  .set-board{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:18px 10px; padding:20px 12px 16px; align-items:start;
+    border-radius:12px; border:8px solid #8B5E34; background-color:#C9A26B;
+    background-image:radial-gradient(rgba(0,0,0,0.12) 1px, transparent 1.5px), radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1.5px);
+    background-size:7px 7px, 11px 11px; box-shadow:inset 0 0 18px rgba(0,0,0,0.35), 0 6px 16px rgba(0,0,0,0.3); margin-bottom:12px; }
+  .set-board .set-note:last-child:nth-child(3n+1){ grid-column:2; }
+  .set-note{ position:relative; min-width:0; aspect-ratio:1 / 1; padding:14px 5px 8px; border:none; cursor:pointer; text-align:center;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; box-shadow:2px 4px 6px rgba(0,0,0,0.35);
+    background-image:linear-gradient(180deg, rgba(255,255,255,0.3), rgba(0,0,0,0.03)) !important; }
+  .set-note:active{ filter:brightness(0.95); }
+  .set-note .note-pin{ top:-12px !important; }
+  .sn-ico{ font-size:26px; line-height:1; } .sn-ico svg.pin-ico{ width:20px !important; height:27px !important; margin:0 !important; }
+  .sn-ico.q{ font-family:'Baloo 2',sans-serif; font-weight:800; font-size:30px; color:#7A4B00; }
+  svg.cal-ico{ width:1em; height:1em; display:inline-block; vertical-align:-0.12em; }
+  .sn-ico svg.cal-ico{ width:40px; height:40px; }
+  .sn-ico.q + .sn-lbl.long{ margin-top:-2px; }
+  .sn-lbl{ font-family:'Caveat',cursive; font-weight:700; font-size:19px; line-height:1; color:#2B2B2B; }
+  .sn-lbl .gg-q{ font-size:14px; display:inline-block; margin-bottom:2px; }
+  .sn-lbl.gg-big{ font-size:19px !important; line-height:.95; }
+  .sn-lbl.long{ font-size:15px !important; }
+  #set-slot .acc-bd{ display:block !important; margin:10px 0 0; padding:0; border:none; box-shadow:none; background:none; animation:none; }
   .gg-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px 8px; max-width:420px; margin:0 auto 12px; }
-  .gg-grid .gg-tile:last-child:nth-child(3n+1){ grid-column:2; }
+  .gg-grid .gg-note:last-child:nth-child(3n+1){ grid-column:2; }
+  #view-goose .gg-grid{ gap:22px 12px; padding:12px 4px 4px; }
   .gg-tile{ display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:6px; padding:12px 4px 10px; border-radius:16px;
     background:linear-gradient(180deg, var(--pl) 0%, var(--pc) 100%); border:1px solid var(--pd);
     box-shadow:0 4px 0 var(--pd), 0 6px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8); color:#1F2F35; cursor:pointer; }
@@ -887,7 +921,7 @@
   /* I'm traveling window */
   .tw-step{ display:flex; align-items:center; gap:8px; font-weight:800; font-size:15px; margin:14px 0 7px; }
   .tw-step i{ font-style:normal; width:24px; height:24px; border-radius:50%; background:var(--ocean); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:13px; }
-  .tw-mode{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .tw-mode{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
   .tw-mode button{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 6px; border-radius:14px; font-weight:800; font-size:14.5px;
     background:#F3EEE2; border:2px solid var(--line); color:var(--ink); box-shadow:0 3px 0 #D6CCB4; }
   .tw-mode button span{ font-size:28px; line-height:1.1; }
@@ -1078,16 +1112,12 @@
     <section class="view scroll" id="view-goose">
       <div class="goose-card">
         <div class="goose-icon"><svg class="egg" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="gep" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#FFFDF0"/><stop offset=".4" stop-color="#F5C542"/><stop offset="1" stop-color="#8A5A0B"/></radialGradient></defs><ellipse cx="50" cy="52" rx="28" ry="36" fill="url(#gep)" stroke="#8A5A0B" stroke-width="2.2"/><path d="M30 66 L42 54 L50 60 L66 40" fill="none" stroke="#14532D" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 40 H67 V49" fill="none" stroke="#14532D" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M38 26 q4 -5 10 -6" stroke="#FFFDF0" stroke-width="3" stroke-linecap="round" fill="none" opacity=".8"/></svg></div>
-        <div class="gg-head"><h2>Golden Goose</h2><span class="gg-tag">Synthetic stock</span></div>
-      </div>
-      <div class="gg-facts">
-        <div><span>📈</span><b>Bullish</b><small>for 1&ndash;2 years</small></div>
-        <div><span>🏦</span><b>Like owning</b><small>the stock</small></div>
-        <div><span>💰</span><b>Small part</b><small>of the cost</small></div>
+        <div class="gg-head"><h2>Golden Goose</h2></div>
+        <div class="goose-icon"><svg class="egg" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="gep2" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#FFFDF0"/><stop offset=".4" stop-color="#F5C542"/><stop offset="1" stop-color="#8A5A0B"/></radialGradient></defs><ellipse cx="50" cy="52" rx="28" ry="36" fill="url(#gep2)" stroke="#8A5A0B" stroke-width="2.2"/><path d="M30 66 L42 54 L50 60 L66 40" fill="none" stroke="#14532D" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 40 H67 V49" fill="none" stroke="#14532D" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M38 26 q4 -5 10 -6" stroke="#FFFDF0" stroke-width="3" stroke-linecap="round" fill="none" opacity=".8"/></svg></div>
       </div>
 
       <div class="panel" data-pc="#FEF08A">
-        <h3>? What it is</h3>
+        <h3>? What is the Golden Goose</h3>
         <ul class="gg">
           <li><b>Stock = Call &minus; Put.</b> Buying a call and selling a put behaves like owning the stock.</li>
           <li>The <b>short put spread</b> brings in money to pay for the trade.</li>
@@ -1135,7 +1165,7 @@
       </div>
 
       <div class="panel">
-        <h3>📅 Monthly income (3-leg)</h3>
+        <h3><svg class="cal-ico" viewBox="0 0 100 100" aria-hidden="true"><rect x="12" y="16" width="76" height="74" rx="10" fill="#fff" stroke="#475569" stroke-width="3"/><path d="M12 26 A10 10 0 0 1 22 16 H78 A10 10 0 0 1 88 26 V40 H12 Z" fill="#EF4444" stroke="#475569" stroke-width="3"/><rect x="29" y="8" width="7" height="16" rx="3.5" fill="#475569"/><rect x="64" y="8" width="7" height="16" rx="3.5" fill="#475569"/><rect x="24" y="50" width="9" height="7" rx="1.5" fill="#CBD5E1"/><rect x="38" y="50" width="9" height="7" rx="1.5" fill="#CBD5E1"/><rect x="52" y="50" width="9" height="7" rx="1.5" fill="#CBD5E1"/><rect x="66" y="50" width="9" height="7" rx="1.5" fill="#CBD5E1"/><rect x="24" y="62" width="9" height="7" rx="1.5" fill="#CBD5E1"/><rect x="38" y="62" width="9" height="7" rx="1.5" fill="#CBD5E1"/><rect x="52" y="62" width="9" height="7" rx="1.5" fill="#CBD5E1"/><rect x="66" y="62" width="9" height="7" rx="1.5" fill="#CBD5E1"/><rect x="24" y="74" width="9" height="7" rx="1.5" fill="#CBD5E1"/><rect x="38" y="74" width="9" height="7" rx="1.5" fill="#CBD5E1"/><rect x="52" y="74" width="9" height="7" rx="1.5" fill="#CBD5E1"/><rect x="66" y="74" width="9" height="7" rx="1.5" fill="#CBD5E1"/></svg> Monthly income (3&#8209;legs)</h3>
         <ul class="gg">
           <li>Sell a call about <b>1 month out</b> (monthly options), at <b>delta 20% or less</b>.</li>
           <li>Ask for the premium of a <b>delta 30%</b> call, and only if it pays <b>$1.00 or more</b>.</li>
@@ -1228,7 +1258,7 @@
       </div>
       <div class="panel" id="howto-panel" data-pc="#C7D2FE">
         <h3>📖 How to use this app</h3>
-        <p class="help">The 5 buttons at the bottom open the 5 pages (left to right: Trades, Next Meeting, Golden Goose, Traders, Settings). Here's what each one does.</p>
+        <p class="help">The 5 buttons at the bottom open the 5 pages. In Settings, tap a sticky note to open it (left to right: Trades, Next Meeting, Golden Goose, Traders, Settings). Here's what each one does.</p>
         <div class="hs">
           <div class="hs-t">📟 Trades</div>
           <ul class="gg">
@@ -1246,8 +1276,8 @@
             <li><b>👥 in the group</b> opens the Traders page. <b>✈️ traveling</b> lists who's away; tap a name to fly there.</li>
             <li>Travelers show their local time vs <b>ET / CT / PT</b> &mdash; 😴 means they're probably asleep.</li>
             <li><b>⬅️ Back to main map</b> zooms back out to everyone.</li>
-            <li><b>Tap your own trip pin</b> to choose <b>🏡 I'm going back home</b> or <b>I'm traveling to…</b> (flying, car or cruise).</li>
-            <li><b>Traveling?</b> Tap <b>✈️ traveling</b> on the map (or Settings &rarr; Trips) &rarr; <b>I'm traveling &mdash; add a trip</b>. Pick your name, choose <b>✈️ Flying</b>, <b>🚢 Cruise ship</b> or <b>🚗 Car</b>, tap <b>📍 use my location</b> or type the city, then <b>Save</b>.</li>
+            <li><b>Tap your own trip pin</b> to choose <b>🏡 I'm going back home</b> or <b>I'm traveling to…</b> (flying, cruise, car or RV).</li>
+            <li><b>Traveling?</b> Tap <b>✈️ traveling</b> on the map (or Settings &rarr; Trips) &rarr; <b>I'm traveling &mdash; add a trip</b>. Pick your name, choose <b>✈️ Flying</b>, <b>🚢 Cruise ship</b>, <b>🚗 Car</b> or <b>🚐 RV</b>, tap <b>📍 use my location</b> or type the city, then <b>Save</b>.</li>
             <li>Right side: <b>+ / −</b> zoom, <b>🌍</b> show everyone, <b>layers</b> satellite view, <b>✈️</b> add or hide trips.</li>
           </ul>
         </div>
@@ -1296,7 +1326,7 @@
 
   <nav class="tabbar" id="tabbar">
     <button class="tab t-green active" data-view="trades" aria-label="Trades"><span class="rb"><svg class="ticker" viewBox="0 0 100 100" aria-hidden="true"><rect x="8" y="16" width="84" height="68" rx="9" fill="#062A1E" stroke="#F5C542" stroke-width="3"/><line x1="14" y1="36" x2="86" y2="36" stroke="#F5C542" stroke-opacity=".25" stroke-width="1"/><line x1="14" y1="52" x2="86" y2="52" stroke="#F5C542" stroke-opacity=".25" stroke-width="1"/><line x1="14" y1="68" x2="86" y2="68" stroke="#F5C542" stroke-opacity=".25" stroke-width="1"/><text x="17" y="31" font-family="'JetBrains Mono',Courier New,monospace" font-weight="800" font-size="13.5" fill="#F5C542">SPX</text><text x="83" y="31" text-anchor="end" font-family="Arial,sans-serif" font-weight="900" font-size="11.5" fill="#4ADE80">▲</text><text x="17" y="47" font-family="'JetBrains Mono',Courier New,monospace" font-weight="800" font-size="13.5" fill="#F5C542">QQQ</text><text x="83" y="47" text-anchor="end" font-family="Arial,sans-serif" font-weight="900" font-size="11.5" fill="#4ADE80">▲</text><text x="17" y="63" font-family="'JetBrains Mono',Courier New,monospace" font-weight="800" font-size="13.5" fill="#F5C542">SPY</text><text x="83" y="63" text-anchor="end" font-family="Arial,sans-serif" font-weight="900" font-size="11.5" fill="#F87171">▼</text><text x="17" y="79" font-family="'JetBrains Mono',Courier New,monospace" font-weight="800" font-size="13.5" fill="#F5C542">BTC</text><text x="83" y="79" text-anchor="end" font-family="Arial,sans-serif" font-weight="900" font-size="11.5" fill="#4ADE80">▲</text></svg></span><span class="tl">Trades</span></button>
-    <button class="tab t-cal" data-view="meeting" aria-label="Next Meeting"><span class="rb">📅</span><span class="tl">Next Meeting</span></button>
+    <button class="tab t-cal" data-view="meeting" aria-label="Next Meeting"><span class="rb" id="meet-tab-ico"></span><span class="tl">Next Meeting</span></button>
     <button class="tab t-gold" data-view="goose" aria-label="Golden Goose"><span class="rb"><svg class="egg" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="get" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#FFFDF0"/><stop offset=".4" stop-color="#F5C542"/><stop offset="1" stop-color="#8A5A0B"/></radialGradient></defs><ellipse cx="50" cy="52" rx="28" ry="36" fill="url(#get)" stroke="#8A5A0B" stroke-width="2.2"/><path d="M30 66 L42 54 L50 60 L66 40" fill="none" stroke="#14532D" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M58 40 H67 V49" fill="none" stroke="#14532D" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M38 26 q4 -5 10 -6" stroke="#FFFDF0" stroke-width="3" stroke-linecap="round" fill="none" opacity=".8"/></svg></span><span class="tl">Golden Goose</span></button>
     <button class="tab t-orange" data-view="members" aria-label="Traders"><span class="rb"><svg class="candles" viewBox="0 0 100 100" aria-hidden="true"><line x1="14" y1="58" x2="14" y2="96" stroke="#0B3B2A" stroke-width="5" stroke-linecap="round"/><rect x="4" y="64" width="20" height="20" rx="3.5" fill="#FFFFFF" stroke="#0B3B2A" stroke-width="2.5"/><line x1="38" y1="42" x2="38" y2="84" stroke="#991B1B" stroke-width="5" stroke-linecap="round"/><rect x="28" y="54" width="20" height="20" rx="3.5" fill="#EF4444" stroke="#991B1B" stroke-width="2.5"/><line x1="62" y1="24" x2="62" y2="72" stroke="#0B3B2A" stroke-width="5" stroke-linecap="round"/><rect x="52" y="36" width="20" height="22" rx="3.5" fill="#FFFFFF" stroke="#0B3B2A" stroke-width="2.5"/><line x1="86" y1="4" x2="86" y2="54" stroke="#0B3B2A" stroke-width="5" stroke-linecap="round"/><rect x="76" y="16" width="20" height="26" rx="3.5" fill="#FFFFFF" stroke="#0B3B2A" stroke-width="2.5"/></svg></span><span class="tl">Traders</span></button>
     <button class="tab t-purple" data-view="settings" aria-label="Settings"><span class="rb">⚙️</span><span class="tl">Settings</span></button>
@@ -1323,7 +1353,7 @@
         <h3>How editing works</h3>
         <p class="help" style="margin:0;">Tap any friend's card, then <b>Manage</b> to edit, move the pin, or leave the group. Trades can be changed for 24 hours, pins and trips for 48 hours, then they lock so nothing gets changed by accident. Tap the lock button to unlock, make your change, and lock it again.</p>
       </div>
-    <div class="stamp-line" id="debug-stamp">build 2026-11-16-98</div>
+    <div class="stamp-line" id="debug-stamp">build 2026-11-17-110</div>
   </div>
 </div>
 <div id="print-area" aria-hidden="true"></div>
@@ -2229,6 +2259,7 @@
   function showView(name){
     currentView = name;
     document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+    document.body.classList.toggle('on-goose', name === 'goose');   // Golden Goose: only the golden eggs behind it
     const lit = (name === 'map' || name === 'trips') ? 'members' : name;
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === lit));
     if(name === 'trades') setTimeout(fitTradeLines, 0);
@@ -2416,6 +2447,7 @@
           style="background:${NOTE_COLORS[h % NOTE_COLORS.length]};transform:rotate(${tilt}deg) translateY(${lift}px)">
         <span class="note-pin">${pinSvg(c, 14)}</span>
         ${isMine(p.id) ? '<i class="note-you">YOU</i>' : ''}
+        ${String(p.name || '').trim().toLowerCase() === 'mo' ? '<svg class="note-crown" viewBox="0 0 64 48" aria-label="Group leader" role="img"><path d="M6 40 L4 12 L18 24 L32 4 L46 24 L60 12 L58 40 Z" fill="#F5C542" stroke="#8A5A0B" stroke-width="3" stroke-linejoin="round"/><rect x="6" y="36" width="52" height="8" rx="2" fill="#E0A526" stroke="#8A5A0B" stroke-width="3"/><circle cx="4" cy="12" r="4" fill="#FDE68A" stroke="#8A5A0B" stroke-width="2"/><circle cx="32" cy="4" r="4" fill="#FDE68A" stroke="#8A5A0B" stroke-width="2"/><circle cx="60" cy="12" r="4" fill="#FDE68A" stroke="#8A5A0B" stroke-width="2"/><circle cx="32" cy="27" r="4.5" fill="#DC2626" stroke="#7F1D1D" stroke-width="1.5"/><circle cx="18" cy="31" r="3" fill="#2563EB"/><circle cx="46" cy="31" r="3" fill="#16A34A"/></svg>' : ''}
         <span class="note-name">${esc(p.name)}</span>
         <span class="note-city">${esc(p.city || '')}${p.state ? ', ' + esc(p.state) : ''}</span>
         ${tr ? `<span class="note-trip" data-trip="${esc(tr.id)}" role="button" aria-label="${esc(p.name)} is in ${esc(tr.city)} — show on map">${tripIco(tr)} ${esc(tr.city)}</span>` : ''}
@@ -2490,7 +2522,7 @@
     track.style.setProperty('--dur', Math.max(18, items.length * 4) + 's');
   }
 
-  function renderAll(){ renderMap(); renderMembers(); renderTrips(); renderTrades(); renderTicker(); refreshStatus(); renderTripManage(); renderMyPin(); renderPinDelete(); }
+  function renderAll(){ renderBackgroundFlags(); renderMap(); renderMembers(); renderTrips(); renderTrades(); renderTicker(); refreshStatus(); renderTripManage(); renderMyPin(); renderPinDelete(); }
 
   /* =====================================================================
      Bottom sheet: member details, with Manage tucked inside
@@ -2499,7 +2531,7 @@
   function openSheet(html){ sheetBody.innerHTML = '<div class="grab"></div><button class="sheet-x" aria-label="Close window" title="Close window"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7 H20 L12 19 Z" fill="#16A34A" stroke="#0F6B33" stroke-width="1.5" stroke-linejoin="round"/></svg></button>' + html; sheet.classList.add('open'); sheetBody.scrollTop = 0; }
   // The ✕ in the corner closes any pop-up window.
   sheetBody.addEventListener('click', e => { if(e.target.closest('.sheet-x')){ e.stopPropagation(); closeSheet(); } }, true);
-  function closeSheet(){ sheet.classList.remove('open'); sheetBody.innerHTML = ''; }
+  function closeSheet(){ restoreSettingsNote(); sheet.classList.remove('open'); sheetBody.innerHTML = ''; }
   $('sheet-back').addEventListener('click', closeSheet);
   document.addEventListener('keydown', e => { if(e.key === 'Escape') closeSheet(); });
 
@@ -2904,7 +2936,9 @@
   }
   function filteredTrades(){
     const q = $('trade-search').value.trim().toLowerCase();
-    return [...trades].sort((a,b)=> (b.ts||0) - (a.ts||0))
+    // Newest trade date first (the date picked when adding it); same day → most recently added first.
+    const day = t => t.date || (t.ts ? new Date(t.ts - new Date(t.ts).getTimezoneOffset() * 60000).toISOString().slice(0, 10) : '');
+    return [...trades].sort((a,b)=> day(b).localeCompare(day(a)) || (b.ts||0) - (a.ts||0))
       .filter(t => !q || (t.text + ' ' + (t.note||'')).toLowerCase().includes(q));
   }
   function renderTrades(){
@@ -3303,8 +3337,9 @@
      ===================================================================== */
   let tw = null;   // { place, hits, mode }
   // ✈️ flying or 🚢 on a cruise ship
-  const tripIco = t => (t && t.mode === 'cruise') ? '🚢' : (t && t.mode === 'car') ? '🚗' : '✈️';
-  const tripWord = t => (t && t.mode === 'cruise') ? 'on a cruise' : (t && t.mode === 'car') ? 'on a road trip' : 'flying';
+  const TRIP_MODES = { fly:['✈️','flying'], cruise:['🚢','on a cruise'], car:['🚗','on a road trip'], rv:['🚐','in an RV'] };
+  const tripIco = t => (TRIP_MODES[t && t.mode] || TRIP_MODES.fly)[0];
+  const tripWord = t => (TRIP_MODES[t && t.mode] || TRIP_MODES.fly)[1];
   function travelNames(){
     return [...new Set(pins.map(p => String(p.name || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   }
@@ -3326,6 +3361,7 @@
           <button type="button" class="on" data-mode="fly"><span>✈️</span>Flying</button>
           <button type="button" data-mode="cruise"><span>🚢</span>Cruise ship</button>
           <button type="button" data-mode="car"><span>🚗</span>Car</button>
+          <button type="button" data-mode="rv"><span>🚐</span>RV</button>
         </div>
         <div class="tw-step"><i>3</i>Where are you?</div>
         <div id="tw-where">
@@ -3412,7 +3448,7 @@
         <div class="mg-list" style="margin-top:8px"><button class="btn dark big" data-mt2="unlock">${ICON.unlock}Unlock to change it</button></div>` : `
       <div class="mg-list" style="margin-top:14px">
         <button class="btn bull big" data-mt2="home">🏡 I'm going back home</button>
-        <button class="btn dark big" data-mt2="next">✈️ 🚗 🚢 I'm traveling to…</button>
+        <button class="btn dark big" data-mt2="next">✈️ 🚢 🚗 🚐 I'm traveling to…</button>
       </div>`}
       <div class="status" id="sheet-status"></div>`);
     sheetBody.onclick = async e => {
@@ -3486,7 +3522,7 @@
         const when = t.ts ? new Date(t.ts).toLocaleDateString(undefined, { month:'short', day:'numeric' }) : '';
         return `<button class="tv-row" data-trip="${esc(t.id)}">
           <span class="pin-badge">${pinSvg(tripColor(t), 26)}</span>
-          <span class="tv-tx"><b>${tripIco(t)} ${esc(t.name)}${t.mode === 'cruise' || t.mode === 'car' ? ` <em class="tv-mode">${tripWord(t)}</em>` : ''}</b><span>${flagEmoji(t.cc)} ${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}${when ? ' · since ' + esc(when) : ''}</span><span class="tv-time">${tzBadge(t)}</span></span>
+          <span class="tv-tx"><b>${tripIco(t)} ${esc(t.name)}${t.mode && t.mode !== 'fly' ? ` <em class="tv-mode">${tripWord(t)}</em>` : ''}</b><span>${flagEmoji(t.cc)} ${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}${when ? ' · since ' + esc(when) : ''}</span><span class="tv-time">${tzBadge(t)}</span></span>
           <span class="tv-go">See ›</span></button>`;
       }).join('')}</div>
       ${list.length > 1 ? '<button class="btn block" data-trip-all>🌍 Show everyone traveling</button>' : ''}`);
@@ -3689,7 +3725,21 @@
   }
 
   // Settings sections become drop-down buttons. Opening one closes the others.
+  let setNoteOpen = null;   // { pn, bd } while a Settings note is open in a pop-up
+  function restoreSettingsNote(){
+    if(!setNoteOpen) return;
+    setNoteOpen.pn.appendChild(setNoteOpen.bd); setNoteOpen = null;
+  }
+  function openSettingsNote(pn){
+    restoreSettingsNote();
+    const ico = pn.querySelector('.acc-ico'), lbl = pn.querySelector('.acc-lbl > span:last-child');
+    const bd = pn.querySelector('.acc-bd'); if(!bd) return;
+    openSheet(`<div class="sh-title"><div class="n">${ico.classList.contains('q') ? '❓' : ico.innerHTML} ${lbl.innerHTML}</div></div><div id="set-slot"></div>`);
+    $('set-slot').appendChild(bd);
+    setNoteOpen = { pn, bd };
+  }
   function openAcc(id){
+    if(id && $(id) && $(id).parentElement && $(id).parentElement.id === 'view-settings'){ openSettingsNote($(id)); return; }
     document.querySelectorAll('#view-settings > .panel.acc, #view-goose > .panel.acc').forEach(pn => {
       const on = pn.id === id;
       pn.classList.toggle('open', on);
@@ -3726,6 +3776,29 @@
     btn.addEventListener('click', ()=> openAcc(pn.classList.contains('open') ? null : pn.id));
   });
 
+  // Settings: every section is a sticky note on a corkboard; tap one to open it.
+  (function(){
+    const view = $('view-settings');
+    const panels = [...view.querySelectorAll(':scope > .panel.acc')];
+    if(!panels.length) return;
+    const board = document.createElement('div'); board.className = 'set-board';
+    panels.forEach((pn, i) => {
+      const ico = pn.querySelector('.acc-ico'), lbl = pn.querySelector('.acc-lbl > span:last-child');
+      const h = hashStr(pn.id || String(i));
+      const tilt = ((h % 7) - 3) * 1.1, lift = (h >> 3) % 7 - 3;
+      const n = document.createElement('button');
+      n.type = 'button'; n.className = 'set-note';
+      n.style.background = NOTE_COLORS[(i * 2 + 1) % NOTE_COLORS.length];
+      n.style.transform = `rotate(${tilt}deg) translateY(${lift}px)`;
+      n.innerHTML = `<span class="note-pin">${pinSvg(PIN_COLORS[i % PIN_COLORS.length], 16)}</span>
+        <span class="sn-ico${ico.classList.contains('q') ? ' q' : ''}">${ico.innerHTML}</span><span class="sn-lbl${lbl.textContent.length > 20 && !/Golden Goose/.test(lbl.textContent) ? ' long' : ''}${/Golden Goose/.test(lbl.textContent) ? ' gg-big' : ''}">${/What is the Golden Goose/.test(lbl.textContent) ? '<small class="gg-q">What&nbsp;is&nbsp;the</small><br>Golden<br>Goose' : lbl.innerHTML}</span>`;
+      n.addEventListener('click', ()=> openSettingsNote(pn));
+      board.appendChild(n);
+      pn.hidden = true;
+    });
+    panels[0].parentNode.insertBefore(board, panels[0]);
+  })();
+
   // Golden Goose: the rule sections become small 3D tiles; tap one to read it in a pop-up window.
   (function(){
     const view = $('view-goose');
@@ -3735,9 +3808,12 @@
     panels.forEach(pn => {
       const ico = pn.querySelector('.acc-ico'), lbl = pn.querySelector('.acc-lbl > span:last-child');
       const t = document.createElement('button');
-      t.type = 'button'; t.className = 'gg-tile';
-      ['--pc','--pl','--pd'].forEach(v => t.style.setProperty(v, pn.style.getPropertyValue(v)));
-      t.innerHTML = `<span class="gg-ti${ico.classList.contains('q') ? ' q' : ''}">${ico.innerHTML}</span><b>${lbl.innerHTML}</b>`;
+      const k = grid.children.length, h = hashStr('gg' + k + lbl.textContent);
+      t.type = 'button'; t.className = 'set-note gg-note';
+      t.style.background = NOTE_COLORS[(k * 2) % NOTE_COLORS.length];
+      t.style.transform = `rotate(${((h % 7) - 3) * 1.1}deg) translateY(${(h >> 3) % 7 - 3}px)`;
+      t.innerHTML = `<span class="note-pin">${pinSvg(PIN_COLORS[(k + 3) % PIN_COLORS.length], 16)}</span>
+        <span class="sn-ico${ico.classList.contains('q') ? ' q' : ''}">${ico.innerHTML}</span><span class="sn-lbl${lbl.textContent.length > 20 && !/Golden Goose/.test(lbl.textContent) ? ' long' : ''}${/Golden Goose/.test(lbl.textContent) ? ' gg-big' : ''}">${/What is the Golden Goose/.test(lbl.textContent) ? '<small class="gg-q">What&nbsp;is&nbsp;the</small><br>Golden<br>Goose' : lbl.innerHTML}</span>`;
       t.addEventListener('click', ()=>{
         openSheet(`<div class="sh-title"><div class="n">${ico.classList.contains('q') ? '❓' : ico.innerHTML} ${lbl.innerHTML}</div></div>
           <div class="gg-sheet">${pn.querySelector('.acc-bd').innerHTML}</div>`);
@@ -3847,7 +3923,29 @@
     if(days === 1) return '⏰ Tomorrow';
     return `⏳ In ${days} days`;
   }
+  // The bottom-bar button: a little calendar page showing the next meeting's date.
+  function renderMeetingTab(){
+    const ico = $('meet-tab-ico'); if(!ico) return;
+    const when = meetingInstant(meeting), upcoming = when && when.getTime() > Date.now() - 3 * 3600000;
+    let mon = '', day = '';
+    if(upcoming){
+      const [y, mo, d] = meeting.date.split('-').map(Number);
+      mon = new Date(y, mo - 1, d).toLocaleDateString('en-US', { month:'short' }).toUpperCase();
+      day = String(d);
+    }
+    ico.innerHTML = `<svg class="mcal" viewBox="0 0 100 100" aria-hidden="true">
+      <rect x="14" y="14" width="72" height="74" rx="11" fill="#FFFFFF" stroke="#0F5A3D" stroke-width="3"/>
+      <path d="M14 25 A11 11 0 0 1 25 14 H75 A11 11 0 0 1 86 25 V40 H14 Z" fill="#DC2626" stroke="#0F5A3D" stroke-width="3"/>
+      <rect x="30" y="7" width="7" height="15" rx="3.5" fill="#0F5A3D"/><rect x="63" y="7" width="7" height="15" rx="3.5" fill="#0F5A3D"/>
+      ${upcoming
+        ? `<text x="50" y="35" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="900" font-size="17" letter-spacing="1" fill="#fff">${mon}</text>
+           <text x="50" y="78" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="900" font-size="36" fill="#14251C">${day}</text>`
+        : `<text x="50" y="74" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-weight="900" font-size="34" fill="#94A3B8">?</text>`}
+    </svg>`;
+    ico.parentElement.setAttribute('aria-label', upcoming ? `Next Meeting: ${mon} ${day}` : 'Next Meeting');
+  }
   function renderMeeting(){
+    renderMeetingTab();
     const el = $('meet-body'); if(!el) return;
     const m = meeting, when = meetingInstant(m);
     const passed = !when || when.getTime() < Date.now() - 3 * 3600000;
@@ -3940,6 +4038,7 @@
     else if(b.dataset.mt === 'unlock'){ unlocked.add('meeting'); renderMeeting(); }
   });
   setInterval(()=>{ if(currentView === 'meeting') renderMeeting(); }, 60000);
+  renderMeetingTab();
 
   /* =====================================================================
      Toast, Save As, status
@@ -4055,7 +4154,88 @@
       const rot = (Math.random() - 0.5) * 50, op = 0.13 + Math.random() * 0.09;
       out += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(1)} ${w / 2} ${h / 2})" opacity="${op.toFixed(2)}">${bill(w, h)}</g>`;
     }
-    svg.innerHTML = out;
+    svg.innerHTML = out + '<g id="bg-flags"></g>';
+    flagSig = ''; renderBackgroundFlags();
+  }
+  // Hand-drawn flags (no internet needed); other countries load a flag picture.
+  function flagSvg(cc, w, h){
+    const V = (a, b, c) => `<rect width="${w/3}" height="${h}" fill="${a}"/><rect x="${w/3}" width="${w/3}" height="${h}" fill="${b}"/><rect x="${2*w/3}" width="${w/3+.5}" height="${h}" fill="${c}"/>`;
+    const H3 = (a, b, c) => `<rect width="${w}" height="${h/3}" fill="${a}"/><rect y="${h/3}" width="${w}" height="${h/3}" fill="${b}"/><rect y="${2*h/3}" width="${w}" height="${h/3+.5}" fill="${c}"/>`;
+    const H2 = (a, b) => `<rect width="${w}" height="${h/2}" fill="${a}"/><rect y="${h/2}" width="${w}" height="${h/2}" fill="${b}"/>`;
+    const nordic = (bg, cr, inner) => `<rect width="${w}" height="${h}" fill="${bg}"/><rect x="${w*.28}" width="${w*.16}" height="${h}" fill="${cr}"/><rect y="${h*.4}" width="${w}" height="${h*.2}" fill="${cr}"/>` +
+      (inner ? `<rect x="${w*.32}" width="${w*.08}" height="${h}" fill="${inner}"/><rect y="${h*.45}" width="${w}" height="${h*.1}" fill="${inner}"/>` : '');
+    switch(cc){
+      case 'US': {
+        let st = ''; for(let i = 0; i < 7; i++) st += `<rect y="${i * 2 * h / 13}" width="${w}" height="${h / 13}" fill="#B22234"/>`;
+        let dots = ''; for(let r = 0; r < 4; r++) for(let c = 0; c < 5; c++) dots += `<circle cx="${w*.05 + c * w*.08}" cy="${h*.07 + r * h*.13}" r="${h*.025}" fill="#fff"/>`;
+        return `<rect width="${w}" height="${h}" fill="#fff"/>${st}<rect width="${w*.42}" height="${h*7/13}" fill="#3C3B6E"/>${dots}`;
+      }
+      case 'CA': return `<rect width="${w}" height="${h}" fill="#fff"/><rect width="${w/4}" height="${h}" fill="#D52B1E"/><rect x="${w*3/4}" width="${w/4}" height="${h}" fill="#D52B1E"/>
+        <path d="M${w/2} ${h*.2} L${w*.54} ${h*.36} L${w*.62} ${h*.32} L${w*.59} ${h*.5} L${w*.66} ${h*.48} L${w*.6} ${h*.62} L${w*.52} ${h*.6} L${w*.52} ${h*.8} L${w*.48} ${h*.8} L${w*.48} ${h*.6} L${w*.4} ${h*.62} L${w*.34} ${h*.48} L${w*.41} ${h*.5} L${w*.38} ${h*.32} L${w*.46} ${h*.36} Z" fill="#D52B1E"/>`;
+      case 'GB': return `<rect width="${w}" height="${h}" fill="#012169"/><path d="M0 0 L${w} ${h} M${w} 0 L0 ${h}" stroke="#fff" stroke-width="${h*.2}"/><path d="M0 0 L${w} ${h} M${w} 0 L0 ${h}" stroke="#C8102E" stroke-width="${h*.07}"/>
+        <rect x="${w*.42}" width="${w*.16}" height="${h}" fill="#fff"/><rect y="${h*.36}" width="${w}" height="${h*.28}" fill="#fff"/><rect x="${w*.45}" width="${w*.1}" height="${h}" fill="#C8102E"/><rect y="${h*.41}" width="${w}" height="${h*.18}" fill="#C8102E"/>`;
+      case 'IT': return V('#009246', '#fff', '#CE2B37');
+      case 'FR': return V('#0055A4', '#fff', '#EF4135');
+      case 'IE': return V('#169B62', '#fff', '#FF883E');
+      case 'BE': return V('#000', '#FDDA24', '#EF3340');
+      case 'MX': return V('#006847', '#fff', '#CE1126') + `<circle cx="${w/2}" cy="${h/2}" r="${h*.13}" fill="#8C5A2B"/>`;
+      case 'NG': return V('#008751', '#fff', '#008751');
+      case 'PE': return V('#D91023', '#fff', '#D91023');
+      case 'DE': return H3('#000', '#DD0000', '#FFCE00');
+      case 'NL': return H3('#AE1C28', '#fff', '#21468B');
+      case 'RU': return H3('#fff', '#0039A6', '#D52B1E');
+      case 'HU': return H3('#CE2939', '#fff', '#477050');
+      case 'AT': return H3('#ED2939', '#fff', '#ED2939');
+      case 'CO': return `<rect width="${w}" height="${h/2}" fill="#FCD116"/><rect y="${h/2}" width="${w}" height="${h/4}" fill="#003893"/><rect y="${h*3/4}" width="${w}" height="${h/4+.5}" fill="#CE1126"/>`;
+      case 'ES': return `<rect width="${w}" height="${h}" fill="#AA151B"/><rect y="${h/4}" width="${w}" height="${h/2}" fill="#F1BF00"/>`;
+      case 'PL': return H2('#fff', '#DC143C');
+      case 'UA': return H2('#0057B7', '#FFD700');
+      case 'ID': return H2('#CE1126', '#fff');
+      case 'IN': return H3('#FF9933', '#fff', '#138808') + `<circle cx="${w/2}" cy="${h/2}" r="${h*.12}" fill="none" stroke="#000080" stroke-width="${h*.03}"/>`;
+      case 'JP': return `<rect width="${w}" height="${h}" fill="#fff"/><circle cx="${w/2}" cy="${h/2}" r="${h*.3}" fill="#BC002D"/>`;
+      case 'CN': return `<rect width="${w}" height="${h}" fill="#DE2910"/><circle cx="${w*.17}" cy="${h*.27}" r="${h*.12}" fill="#FFDE00"/>`;
+      case 'VN': return `<rect width="${w}" height="${h}" fill="#DA251D"/><circle cx="${w/2}" cy="${h/2}" r="${h*.2}" fill="#FFFF00"/>`;
+      case 'BR': return `<rect width="${w}" height="${h}" fill="#009C3B"/><path d="M${w/2} ${h*.1} L${w*.92} ${h/2} L${w/2} ${h*.9} L${w*.08} ${h/2} Z" fill="#FFDF00"/><circle cx="${w/2}" cy="${h/2}" r="${h*.2}" fill="#002776"/>`;
+      case 'PH': return `${H2('#0038A8', '#CE1126')}<path d="M0 0 L${w*.45} ${h/2} L0 ${h} Z" fill="#fff"/><circle cx="${w*.15}" cy="${h/2}" r="${h*.08}" fill="#FCD116"/>`;
+      case 'GR': { let st = ''; for(let i = 0; i < 9; i++) st += `<rect y="${i*h/9}" width="${w}" height="${h/9+.3}" fill="${i % 2 ? '#fff' : '#0D5EAF'}"/>`;
+        return st + `<rect width="${w*.37}" height="${h*5/9}" fill="#0D5EAF"/><rect x="${w*.15}" width="${w*.07}" height="${h*5/9}" fill="#fff"/><rect y="${h*2/9}" width="${w*.37}" height="${h/9}" fill="#fff"/>`; }
+      case 'SE': return nordic('#006AA7', '#FECC00');
+      case 'DK': return nordic('#C8102E', '#fff');
+      case 'FI': return nordic('#fff', '#002F6C');
+      case 'NO': return nordic('#BA0C2F', '#fff', '#00205B');
+      case 'CH': return `<rect width="${w}" height="${h}" fill="#D52B1E"/><rect x="${w*.42}" y="${h*.2}" width="${w*.16}" height="${h*.6}" fill="#fff"/><rect x="${w*.3}" y="${h*.4}" width="${w*.4}" height="${h*.2}" fill="#fff"/>`;
+      case 'IL': return `<rect width="${w}" height="${h}" fill="#fff"/><rect y="${h*.12}" width="${w}" height="${h*.12}" fill="#0038B8"/><rect y="${h*.76}" width="${w}" height="${h*.12}" fill="#0038B8"/>`;
+      case 'KR': return `<rect width="${w}" height="${h}" fill="#fff"/><circle cx="${w/2}" cy="${h/2}" r="${h*.22}" fill="#CD2E3A"/><path d="M${w/2-h*.22} ${h/2} A${h*.22} ${h*.22} 0 0 0 ${w/2+h*.22} ${h/2}Z" fill="#0047A0"/>`;
+      case 'PR': { let st = ''; for(let i = 0; i < 5; i++) st += `<rect y="${i*h/5}" width="${w}" height="${h/5+.3}" fill="${i % 2 ? '#fff' : '#ED0000'}"/>`;
+        return st + `<path d="M0 0 L${w*.45} ${h/2} L0 ${h} Z" fill="#0050F0"/>`; }
+    }
+    return null;
+  }
+  // Little flags of the countries the traders live in, sprinkled among the bills.
+  let flagSig = '';
+  function renderBackgroundFlags(){
+    const g = $('bg-flags'); if(!g) return;
+    const ccs = [...new Set(pins.map(p => String(p.country || 'US').toUpperCase()).filter(c => /^[A-Z]{2}$/.test(c)))];
+    const sig = ccs.sort().join(','); if(sig === flagSig) return; flagSig = sig;
+    if(!ccs.length){ g.innerHTML = ''; return; }
+    const W = 400, H = 900, n = 14, cols = 2, rows = 7;
+    let out = '', k = Math.floor(Math.random() * ccs.length);
+    const cells = [];
+    for(let r = 0; r < rows; r++) for(let c = 0; c < cols; c++) cells.push([c, r]);
+    cells.sort(() => Math.random() - 0.5);
+    cells.slice(0, n).forEach(([c, r]) => {
+      const cc = ccs[k++ % ccs.length].toLowerCase();
+      const w = 34 + Math.random() * 12, h = w * 2 / 3;
+      const x = c * (W / cols) + 10 + Math.random() * (W / cols - w - 20), y = r * (H / rows) + 8 + Math.random() * (H / rows - h - 16);
+      const rot = (Math.random() - 0.5) * 36;
+      const drawn = flagSvg(cc.toUpperCase(), w, h);
+      const fid = 'fc' + Math.random().toString(36).slice(2, 7);
+      out += `<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${rot.toFixed(1)} ${w / 2} ${h / 2})" opacity=".45">
+        <defs><clipPath id="${fid}"><rect width="${w}" height="${h}" rx="3"/></clipPath></defs>
+        <g clip-path="url(#${fid})">${drawn || `<image href="https://flagcdn.com/w80/${cc}.png" width="${w}" height="${h}" preserveAspectRatio="none"/>`}</g>
+        ${drawn ? `<rect width="${w}" height="${h}" rx="3" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1"/>` : ''}</g>`;
+    });
+    g.innerHTML = out;
   }
 
   /* ---------- Settings: trips list ---------- */
