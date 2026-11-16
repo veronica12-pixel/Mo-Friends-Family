@@ -870,7 +870,7 @@
   /* I'm traveling window */
   .tw-step{ display:flex; align-items:center; gap:8px; font-weight:800; font-size:15px; margin:14px 0 7px; }
   .tw-step i{ font-style:normal; width:24px; height:24px; border-radius:50%; background:var(--ocean); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:13px; }
-  .tw-mode{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .tw-mode{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
   .tw-mode button{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 6px; border-radius:14px; font-weight:800; font-size:14.5px;
     background:#F3EEE2; border:2px solid var(--line); color:var(--ink); box-shadow:0 3px 0 #D6CCB4; }
   .tw-mode button span{ font-size:28px; line-height:1.1; }
@@ -1198,7 +1198,7 @@
             <li><b>👥 in the group</b> opens the Traders page. <b>✈️ traveling</b> lists who's away; tap a name to fly there.</li>
             <li>Travelers show their local time vs <b>ET / CT / PT</b> &mdash; 😴 means they're probably asleep.</li>
             <li><b>⬅️ Back to main map</b> zooms back out to everyone.</li>
-            <li><b>Traveling?</b> Tap <b>✈️ traveling</b> on the map (or Settings &rarr; Trips) &rarr; <b>I'm traveling &mdash; add a trip</b>. Pick your name, choose <b>✈️ Flying</b> or <b>🚢 Cruise ship</b>, tap <b>📍 use my location</b> or type the city, then <b>Save</b>.</li>
+            <li><b>Traveling?</b> Tap <b>✈️ traveling</b> on the map (or Settings &rarr; Trips) &rarr; <b>I'm traveling &mdash; add a trip</b>. Pick your name, choose <b>✈️ Flying</b>, <b>🚢 Cruise ship</b> or <b>🚗 Car</b>, tap <b>📍 use my location</b> or type the city, then <b>Save</b>.</li>
             <li>Right side: <b>+ / −</b> zoom, <b>🌍</b> show everyone, <b>layers</b> satellite view, <b>✈️</b> add or hide trips.</li>
           </ul>
         </div>
@@ -1275,7 +1275,7 @@
         <h3>How editing works</h3>
         <p class="help" style="margin:0;">Tap any friend's card, then <b>Manage</b> to edit, move the pin, or leave the group. Trades can be changed for 24 hours, pins and trips for 48 hours, then they lock so nothing gets changed by accident. Tap the lock button to unlock, make your change, and lock it again.</p>
       </div>
-    <div class="stamp-line" id="debug-stamp">build 2026-11-16-89</div>
+    <div class="stamp-line" id="debug-stamp">build 2026-11-16-90</div>
   </div>
 </div>
 <div id="print-area" aria-hidden="true"></div>
@@ -3250,8 +3250,8 @@
      ===================================================================== */
   let tw = null;   // { place, hits, mode }
   // ✈️ flying or 🚢 on a cruise ship
-  const tripIco = t => (t && t.mode === 'cruise') ? '🚢' : '✈️';
-  const tripWord = t => (t && t.mode === 'cruise') ? 'on a cruise' : 'flying';
+  const tripIco = t => (t && t.mode === 'cruise') ? '🚢' : (t && t.mode === 'car') ? '🚗' : '✈️';
+  const tripWord = t => (t && t.mode === 'cruise') ? 'on a cruise' : (t && t.mode === 'car') ? 'on a road trip' : 'flying';
   function travelNames(){
     return [...new Set(pins.map(p => String(p.name || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   }
@@ -3272,6 +3272,7 @@
         <div class="tw-mode" id="tw-mode">
           <button type="button" class="on" data-mode="fly"><span>✈️</span>Flying</button>
           <button type="button" data-mode="cruise"><span>🚢</span>Cruise ship</button>
+          <button type="button" data-mode="car"><span>🚗</span>Car</button>
         </div>
         <div class="tw-step"><i>3</i>Where are you?</div>
         <div id="tw-where">
@@ -3292,7 +3293,7 @@
       const b = e.target.closest('[data-mode]'); if(!b) return;
       tw.mode = b.dataset.mode;
       $('tw-mode').querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x === b));
-      $('tw-save').innerHTML = tw.mode === 'cruise' ? '🚢 Save my trip' : '✈️ Save my trip';
+      $('tw-save').innerHTML = `${tripIco({ mode:tw.mode })} Save my trip`;
     };
     $('tw-map').onclick = ()=>{ closeSheet(); startAddTrip(); };
     $('tw-save').onclick = twSave;
@@ -3399,7 +3400,7 @@
         const when = t.ts ? new Date(t.ts).toLocaleDateString(undefined, { month:'short', day:'numeric' }) : '';
         return `<button class="tv-row" data-trip="${esc(t.id)}">
           <span class="pin-badge">${pinSvg(tripColor(t), 26)}</span>
-          <span class="tv-tx"><b>${tripIco(t)} ${esc(t.name)}${t.mode === 'cruise' ? ' <em class="tv-mode">on a cruise</em>' : ''}</b><span>${flagEmoji(t.cc)} ${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}${when ? ' · since ' + esc(when) : ''}</span><span class="tv-time">${tzBadge(t)}</span></span>
+          <span class="tv-tx"><b>${tripIco(t)} ${esc(t.name)}${t.mode === 'cruise' || t.mode === 'car' ? ` <em class="tv-mode">${tripWord(t)}</em>` : ''}</b><span>${flagEmoji(t.cc)} ${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}${when ? ' · since ' + esc(when) : ''}</span><span class="tv-time">${tzBadge(t)}</span></span>
           <span class="tv-go">See ›</span></button>`;
       }).join('')}</div>
       ${list.length > 1 ? '<button class="btn block" data-trip-all>🌍 Show everyone traveling</button>' : ''}`);
