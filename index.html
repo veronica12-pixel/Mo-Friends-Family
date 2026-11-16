@@ -844,6 +844,18 @@
   .tab .tl{ font-size:9.5px !important; letter-spacing:-0.2px; }
   @media (max-width:375px){ .tab .rb{ width:42px !important; height:42px !important; font-size:20px !important; } .tab .tl{ font-size:8.5px !important; } }
 
+  /* Add-a-trip search */
+  .trip-find{ display:flex; gap:6px; }
+  .trip-find .inp{ flex:1; min-width:0; }
+  .trip-find .btn{ flex-shrink:0; padding:0 10px; font-size:13px; white-space:nowrap; }
+  .trip-results{ margin-top:6px; max-height:180px; overflow:auto; border:1px solid var(--line); border-radius:12px; background:#fff; }
+  .tr-hit{ display:flex; align-items:center; gap:9px; width:100%; text-align:left; background:none; border:none; border-bottom:1px solid #F0EADC; padding:8px 10px; }
+  .tr-hit:last-child{ border-bottom:none; } .tr-hit:active{ background:#F3EEE2; }
+  .tr-hit .f{ font-size:20px; } .tr-hit .tx{ display:flex; flex-direction:column; min-width:0; line-height:1.2; }
+  .tr-hit b{ font-size:14.5px; color:var(--ink); } .tr-hit small{ font-size:12px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tr-msg{ padding:10px; font-size:13px; color:var(--ink-soft); }
+  #trip-bar{ max-height:calc(100% - 24px); overflow:auto; }
+
   /* Settings: delete a pin */
   .dl-row{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px dashed var(--line); }
   .dl-row:last-child{ border-bottom:none; }
@@ -901,9 +913,15 @@
       <div class="map-copy"><span class="edu">For education only &mdash; not financial advice.</span><span class="thor">&copy; 2026 Thor</span></div>
       <div class="move-bar" id="trip-bar">
         <div class="t">✈️ Where is someone traveling?</div>
-        <div class="s">Pinch and drag the map to find the place, then tap it.</div>
-        <label class="fld" for="trip-who" style="margin-top:8px">Who is traveling</label>
+        <label class="fld" for="trip-who" style="margin-top:6px">Who is traveling</label>
         <select class="inp" id="trip-who"></select>
+        <label class="fld" for="trip-search" style="margin-top:8px">Where are they?</label>
+        <div class="trip-find">
+          <input class="inp" id="trip-search" type="search" placeholder="🔍 Type a city, island or port…" autocomplete="off" enterkeyhint="search">
+          <button type="button" class="btn" id="trip-gps" title="Use my phone's location" aria-label="I'm there now — use my phone's location">📍 I'm here</button>
+        </div>
+        <div class="trip-results" id="trip-results" hidden></div>
+        <div class="s" style="margin-top:6px">…or tap the map. You can drag the pin to fine-tune it.</div>
         <div class="s" id="trip-place" style="margin-top:8px;font-weight:700;color:var(--ink);font-size:14px"></div>
         <div class="acts">
           <button class="btn" id="trip-cancel">Cancel</button>
@@ -1148,6 +1166,7 @@
             <li><b>👥 in the group</b> opens the Traders page. <b>✈️ traveling</b> lists who's away; tap a name to fly there.</li>
             <li>Travelers show their local time vs <b>ET / CT / PT</b> &mdash; 😴 means they're probably asleep.</li>
             <li><b>⬅️ Back to main map</b> zooms back out to everyone.</li>
+            <li><b>Add a trip:</b> tap <b>✈️</b>, pick who, then <b>type the city, island or port</b> (or tap <b>📍 I'm here</b>) &mdash; no need to scroll around the world.</li>
             <li>Right side: <b>+ / −</b> zoom, <b>🌍</b> show everyone, <b>layers</b> satellite view, <b>✈️</b> add or hide trips.</li>
           </ul>
         </div>
@@ -1155,7 +1174,7 @@
           <div class="hs-t">💃 Traders</div>
           <ul class="gg">
             <li>A sticky note for every friend. Search by name or city.</li>
-            <li>Tap a note to see that person; tap the <b>✈️ city</b> tag to see where they're traveling.</li>
+            <li><b>Tap a note</b> to fly to that person on the map &mdash; where they live, or where they are if they're traveling.</li>
             <li><b>＋ Join</b> (or <b>My pin</b>) takes you to Settings to add or fix your pin.</li>
           </ul>
         </div>
@@ -1224,7 +1243,7 @@
         <h3>How editing works</h3>
         <p class="help" style="margin:0;">Tap any friend's card, then <b>Manage</b> to edit, move the pin, or leave the group. Trades can be changed for 24 hours, pins and trips for 48 hours, then they lock so nothing gets changed by accident. Tap the lock button to unlock, make your change, and lock it again.</p>
       </div>
-    <div class="stamp-line" id="debug-stamp">build 2026-11-15-82</div>
+    <div class="stamp-line" id="debug-stamp">build 2026-11-15-85</div>
   </div>
 </div>
 <div id="print-area" aria-hidden="true"></div>
@@ -2139,6 +2158,8 @@
     if(moving && b.dataset.view !== 'map') cancelMove();
     if(addingTrip && b.dataset.view !== 'map') endAddTrip();
     if(b.dataset.view === 'settings' || b.dataset.view === 'goose') openAcc(null);
+    // "Where We Live" always opens on the group's home pins (not zoomed out to travelers).
+    if(b.dataset.view === 'map' && !moving && !addingTrip){ userMovedMap = false; showBack(false); }
     showView(b.dataset.view);
   });
 
@@ -2154,22 +2175,27 @@
       maxBounds:[[-85, -540], [85, 540]], maxBoundsViscosity:1.0
     });
     map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
+    // Slow or capped phone data (e.g. 256 kbps): jump instead of flying, so only the final view's map pictures download.
+    const slowNet = () => { const c = navigator.connection; return !!c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || '') || (c.downlink > 0 && c.downlink < 0.7)); };
+    const flyTo0 = map.flyTo.bind(map), flyB0 = map.flyToBounds.bind(map);
+    map.flyTo = (ll, z, o) => slowNet() ? map.setView(ll, z, { animate:false }) : flyTo0(ll, z, o);
+    map.flyToBounds = (b, o) => slowNet() ? map.fitBounds(b, Object.assign({}, o, { animate:false })) : flyB0(b, o);
 
     // Street map, with a fallback if those pictures can't load at all.
     let loaded = 0, failed = 0;
-    streetLayer = L.tileLayer(ESRI + 'World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom:19, attribution:'Tiles &copy; Esri' });
+    streetLayer = L.tileLayer(ESRI + 'World_Street_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom:19, updateWhenZooming:false, keepBuffer:1, attribution:'Tiles &copy; Esri' });
     streetLayer.on('tileload', ()=> loaded++);
     streetLayer.on('tileerror', ()=>{
       failed++;
       if(!offline() && loaded === 0 && failed === 4 && map.hasLayer(streetLayer)){
         map.removeLayer(streetLayer);
-        streetLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap contributors' }).addTo(map);
+        streetLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, updateWhenZooming:false, keepBuffer:1, attribution:'&copy; OpenStreetMap contributors' }).addTo(map);
         streetLayer.bringToBack();
       }
     });
     streetLayer.addTo(map);
-    satLayer = L.tileLayer(ESRI + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom:19, attribution:'Imagery &copy; Esri' });
-    satLabels = L.tileLayer(ESRI + 'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom:19 });
+    satLayer = L.tileLayer(ESRI + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom:19, updateWhenZooming:false, keepBuffer:1, attribution:'Imagery &copy; Esri' });
+    satLabels = L.tileLayer(ESRI + 'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom:19, updateWhenZooming:false, keepBuffer:1 });
 
     tripsLayer = L.layerGroup().addTo(map);
     pinsLayer = L.layerGroup().addTo(map);
@@ -2321,11 +2347,14 @@
       return;
     }
     const b = e.target.closest('.note'); if(!b) return;
-    // Someone traveling: go straight to where they are.
-    if(isMine(b.dataset.id)){ openPinFix(b.dataset.id); return; }
+    // Tap a sticky note: fly to where that person is now — their trip if traveling, otherwise home.
     const who = pins.find(x => x.id === b.dataset.id), tr = who && tripFor(who);
     if(tr){ goToTrip(tr); return; }
-    openMember(b.dataset.id); });
+    if(!who) return;
+    if(typeof who.lat !== 'number'){ openMember(who.id); return; }
+    showView('map');
+    setTimeout(()=> focusPin(who.id), 60);
+  });
   $('member-search').addEventListener('input', renderMembers);
 
   // Take the map straight to where someone is traveling (no card).
@@ -3012,11 +3041,12 @@
     fillWhoList();
     addingTrip = { marker:null, place:null };
     userMovedMap = true;
-    $('trip-place').textContent = 'Tap the map where they are.';
+    $('trip-place').textContent = '';
+    $('trip-search').value = ''; $('trip-results').hidden = true; tripHits = [];
     $('trip-save').disabled = true; setStatus($('trip-status'), '');
     $('trip-bar').classList.add('show');
     map.invalidateSize({ pan:false });
-    map.flyTo([20, -30], 2, { duration:1 });
+    setTimeout(()=> $('trip-search').focus(), 150);
   }
   function endAddTrip(){
     if(!addingTrip) return;
@@ -3027,14 +3057,8 @@
   function placeTripAt(latlng){
     if(!addingTrip) return;
     const ll = latlng.wrap();
-    const who = $('trip-who').value;
-    const color = colorFor((pins.find(p => p.name === who) || { id:who }).id);
-    const icon = L.divIcon({ className:'pin-icon trip-pin moving', iconSize:[PIN_W, PIN_H], iconAnchor:[PIN_W/2, PIN_H - 1],
-      html: pinSvg(color) + '<span class="trip-badge">✈️</span>' });
-    if(!addingTrip.marker){
-      addingTrip.marker = L.marker(ll, { icon, draggable:true, zIndexOffset:1000 }).addTo(map);
-      addingTrip.marker.on('dragend', ()=> lookUpTripPlace(addingTrip.marker.getLatLng().wrap()));
-    } else { addingTrip.marker.setLatLng(ll); addingTrip.marker.setIcon(icon); }
+    setTripMarker(ll);
+    $('trip-results').hidden = true;
     lookUpTripPlace(ll);
   }
   async function lookUpTripPlace(ll){
@@ -3079,6 +3103,107 @@
     }
     return Object.assign(base, { city:'Selected spot', country:'', cc:'', approx:true });
   }
+  /* ---------- Add a trip without hunting around the map: search a place, or use the phone's location ---------- */
+  function setTripMarker(ll){
+    const who = $('trip-who').value;
+    const color = colorFor((pins.find(p => p.name === who) || { id:who }).id);
+    const icon = L.divIcon({ className:'pin-icon trip-pin moving', iconSize:[PIN_W, PIN_H], iconAnchor:[PIN_W/2, PIN_H - 1],
+      html: pinSvg(color) + '<span class="trip-badge">✈️</span>' });
+    if(!addingTrip.marker){
+      addingTrip.marker = L.marker(ll, { icon, draggable:true, zIndexOffset:1000 }).addTo(map);
+      addingTrip.marker.on('dragend', ()=> lookUpTripPlace(addingTrip.marker.getLatLng().wrap()));
+    } else { addingTrip.marker.setLatLng(ll); addingTrip.marker.setIcon(icon); }
+  }
+  // Jump straight there (no fly-over animation, so only the tiles for that one spot download).
+  function showTripSpot(lat, lon, zoom){ map.setView([lat, lon], zoom, { animate:false }); }
+  function useTripPlace(place, zoom){
+    if(!addingTrip) return;
+    setTripMarker(L.latLng(place.lat, place.lon));
+    showTripSpot(place.lat, place.lon, zoom || 10);
+    addingTrip.asked = 'pick'; addingTrip.place = place;
+    $('trip-place').innerHTML = `${pinIco()}${esc(place.city)}${place.country ? ', ' + esc(place.country) : ''} ${flagEmoji(place.cc)}`;
+    $('trip-save').disabled = false;
+    $('trip-results').innerHTML = ''; $('trip-results').hidden = true;
+  }
+  let tripHits = [], tripSearchTimer = null, tripSearchSeq = 0;
+  async function searchPlaces(q){
+    const out = [];
+    try{
+      const r = await fetchJson(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lang=en`, 5000);
+      (r && r.features || []).forEach(f => {
+        const p = f.properties || {}, c = f.geometry && f.geometry.coordinates; if(!c) return;
+        const name = p.name || p.city || p.county || p.state; if(!name) return;
+        const area = [p.city && p.city !== name ? p.city : '', p.state && p.state !== name ? p.state : ''].filter(Boolean).join(', ');
+        out.push({ lat:+c[1].toFixed(5), lon:+c[0].toFixed(5), city:name, area, country:p.country || '', cc:(p.countrycode || '').toUpperCase(),
+          kind:p.osm_value || '', approx:false });
+      });
+    }catch(e){}
+    if(!out.length){
+      try{
+        const r = await fetchJson(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&accept-language=en&q=${encodeURIComponent(q)}`, 5000);
+        (r || []).forEach(x => {
+          const a = x.address || {};
+          const name = a.city || a.town || a.village || a.island || a.state || (x.display_name || '').split(',')[0];
+          out.push({ lat:+(+x.lat).toFixed(5), lon:+(+x.lon).toFixed(5), city:name, area:a.state && a.state !== name ? a.state : '',
+            country:a.country || '', cc:(a.country_code || '').toUpperCase(), kind:x.type || '', approx:false });
+        });
+      }catch(e){}
+    }
+    // Without internet lookups, fall back to the cities the app already knows.
+    if(!out.length){
+      const k = q.toLowerCase();
+      Object.entries(OFFLINE).filter(([n]) => n.startsWith(k)).slice(0, 6).forEach(([n, v]) =>
+        out.push({ lat:v[0], lon:v[1], city:n.replace(/\b\w/g, c => c.toUpperCase()), area:'', country:'', cc:v[2], approx:true }));
+    }
+    const seen = new Set();
+    return out.filter(p => { const key = p.city + '|' + p.country + '|' + p.lat.toFixed(1); if(seen.has(key)) return false; seen.add(key); return true; });
+  }
+  function renderTripHits(msg){
+    const box = $('trip-results');
+    box.hidden = false;
+    box.innerHTML = msg ? `<div class="tr-msg">${esc(msg)}</div>` : tripHits.map((p, i) =>
+      `<button type="button" class="tr-hit" data-hit="${i}"><span class="f">${flagEmoji(p.cc) || '📍'}</span>
+        <span class="tx"><b>${esc(p.city)}</b><small>${esc([p.area, p.country].filter(Boolean).join(', '))}</small></span></button>`).join('');
+  }
+  $('trip-search').addEventListener('input', ()=>{
+    clearTimeout(tripSearchTimer);
+    const q = $('trip-search').value.trim();
+    if(q.length < 3){ $('trip-results').hidden = true; return; }
+    tripSearchTimer = setTimeout(async ()=>{
+      const seq = ++tripSearchSeq;
+      renderTripHits('Searching…');
+      const hits = await searchPlaces(q);
+      if(seq !== tripSearchSeq || !addingTrip) return;
+      tripHits = hits.map(fixTerritory);
+      if(tripHits.length) renderTripHits(); else renderTripHits('No place found — try another spelling, or tap the map.');
+    }, 450);
+  });
+  $('trip-search').addEventListener('keydown', e => {
+    if(e.key === 'Enter'){ e.preventDefault(); if(tripHits[0] && !$('trip-results').hidden) useTripPlace(tripHits[0]); }
+  });
+  $('trip-results').addEventListener('click', e => {
+    const b = e.target.closest('[data-hit]'); if(!b) return;
+    useTripPlace(tripHits[+b.dataset.hit]); $('trip-search').blur();
+  });
+  $('trip-gps').addEventListener('click', async ()=>{
+    if(!addingTrip) return;
+    const btn = $('trip-gps'); btn.disabled = true;
+    $('trip-place').textContent = 'Finding where you are… tap Allow if your phone asks.';
+    let pos;
+    try{ pos = await getPosition(); }
+    catch(err){
+      btn.disabled = false;
+      $('trip-place').textContent = err && err.code === 1
+        ? "Location is blocked for this page — search for the place instead."
+        : "Couldn't get your location — search for the place instead.";
+      return;
+    }
+    btn.disabled = false;
+    const lat = pos.coords.latitude, lon = pos.coords.longitude;
+    setTripMarker(L.latLng(lat, lon)); showTripSpot(lat, lon, 11);
+    lookUpTripPlace(L.latLng(lat, lon));
+  });
+
   $('trip-who').addEventListener('change', ()=>{
     if($('trip-who').value === '__other'){
       const n = (prompt('Name of the person traveling?') || '').trim();
