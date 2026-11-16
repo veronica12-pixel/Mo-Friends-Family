@@ -856,6 +856,22 @@
   .tr-msg{ padding:10px; font-size:13px; color:var(--ink-soft); }
   #trip-bar{ max-height:calc(100% - 24px); overflow:auto; }
 
+  /* I'm traveling window */
+  .tw-step{ display:flex; align-items:center; gap:8px; font-weight:800; font-size:15px; margin:14px 0 7px; }
+  .tw-step i{ font-style:normal; width:24px; height:24px; border-radius:50%; background:var(--ocean); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:13px; }
+  .tw-mode{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .tw-mode button{ display:flex; flex-direction:column; align-items:center; gap:2px; padding:10px 6px; border-radius:14px; font-weight:800; font-size:14.5px;
+    background:#F3EEE2; border:2px solid var(--line); color:var(--ink); box-shadow:0 3px 0 #D6CCB4; }
+  .tw-mode button span{ font-size:28px; line-height:1.1; }
+  .tw-mode button.on{ background:linear-gradient(180deg,#E8F4FF,#C9E4FB); border-color:#3B82F6; box-shadow:0 3px 0 #2563EB; }
+  .tv-mode{ font-style:normal; font-size:11px; font-weight:800; color:#1E40AF; background:#DBEAFE; border-radius:8px; padding:1px 6px; margin-left:4px; vertical-align:2px; }
+  .tw-or{ text-align:center; font-size:13px; color:var(--ink-soft); margin:10px 0 6px; }
+  .tw-place{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px; background:#E3F6EC; border:1.5px solid #8FD4AF; }
+  .tw-place .f{ font-size:28px; } .tw-place .tx{ flex:1; min-width:0; display:flex; flex-direction:column; line-height:1.2; }
+  .tw-place b{ font-size:17px; } .tw-place small{ font-size:12.5px; color:var(--ink-soft); }
+  .tw-place .btn{ padding:8px 12px; font-size:13px; }
+  .tw .linkbtn{ display:block; margin:6px auto 0; }
+
   /* Settings: delete a pin */
   .dl-row{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px dashed var(--line); }
   .dl-row:last-child{ border-bottom:none; }
@@ -995,7 +1011,7 @@
       <button class="btn" id="trips-back" style="padding:8px 12px;font-size:14px;margin-bottom:10px;background:rgba(255,253,248,0.97)">&larr; Back to map</button>
       <div class="view-title"><h2>✈️ Who's traveling</h2><span class="count" id="trip-count"></span></div>
       <div class="trip-rows" id="trip-grid"></div>
-      <button class="btn dark block" id="trip-add-open">✈️ Add a trip on the map</button>
+      <button class="btn bull block big" id="trip-add-open">✈️ I'm traveling &mdash; add a trip</button>
       <div class="foot"><span class="edu">For education only &mdash; not financial advice.</span><span class="thor">&copy; 2026 Thor</span></div>
     </section>
 
@@ -1133,7 +1149,8 @@
       </div>
       <div class="panel">
         <h3>✈️ Trips</h3>
-        <p class="help">Remove a trip when the person is back home.</p>
+        <button class="btn bull block big" id="set-trip-add" style="margin:0 0 10px">✈️ I'm traveling &mdash; add a trip</button>
+        <p class="help">Back home? Tap <b>Back home</b> next to your name.</p>
         <div id="trip-manage"></div>
       </div>
       <div class="panel">
@@ -1166,7 +1183,7 @@
             <li><b>👥 in the group</b> opens the Traders page. <b>✈️ traveling</b> lists who's away; tap a name to fly there.</li>
             <li>Travelers show their local time vs <b>ET / CT / PT</b> &mdash; 😴 means they're probably asleep.</li>
             <li><b>⬅️ Back to main map</b> zooms back out to everyone.</li>
-            <li><b>Add a trip:</b> tap <b>✈️</b>, pick who, then <b>type the city, island or port</b> (or tap <b>📍 I'm here</b>) &mdash; no need to scroll around the world.</li>
+            <li><b>Traveling?</b> Tap <b>✈️ traveling</b> on the map (or Settings &rarr; Trips) &rarr; <b>I'm traveling &mdash; add a trip</b>. Pick your name, choose <b>✈️ Flying</b> or <b>🚢 Cruise ship</b>, tap <b>📍 use my location</b> or type the city, then <b>Save</b>.</li>
             <li>Right side: <b>+ / −</b> zoom, <b>🌍</b> show everyone, <b>layers</b> satellite view, <b>✈️</b> add or hide trips.</li>
           </ul>
         </div>
@@ -1243,7 +1260,7 @@
         <h3>How editing works</h3>
         <p class="help" style="margin:0;">Tap any friend's card, then <b>Manage</b> to edit, move the pin, or leave the group. Trades can be changed for 24 hours, pins and trips for 48 hours, then they lock so nothing gets changed by accident. Tap the lock button to unlock, make your change, and lock it again.</p>
       </div>
-    <div class="stamp-line" id="debug-stamp">build 2026-11-15-85</div>
+    <div class="stamp-line" id="debug-stamp">build 2026-11-15-87</div>
   </div>
 </div>
 <div id="print-area" aria-hidden="true"></div>
@@ -2302,7 +2319,7 @@
     });
     trips.forEach(t => {
       const icon = L.divIcon({ className:'pin-icon trip-pin', iconSize:[PIN_W, PIN_H], iconAnchor:[PIN_W/2, PIN_H - 1], tooltipAnchor:[0, -PIN_H - 6],
-        html: pinSvg(tripColor(t)) + '<span class="trip-badge">✈️</span>' });
+        html: pinSvg(tripColor(t)) + `<span class="trip-badge">${tripIco(t)}</span>` });
       [0, -360, 360].forEach(shift => {
         const m = L.marker([t.lat, t.lon + shift], { icon, title:`${t.name} in ${t.city}` });
         m.bindTooltip(`${esc(t.name)} · ${tzBadge(t, true)}`, { permanent:true, direction:'top', offset:[0, 0], className:'pin-label trip-label' });
@@ -2337,7 +2354,7 @@
         ${isMine(p.id) ? '<i class="note-you">YOU</i>' : ''}
         <span class="note-name">${esc(p.name)}</span>
         <span class="note-city">${esc(p.city || '')}${p.state ? ', ' + esc(p.state) : ''}</span>
-        ${tr ? `<span class="note-trip" data-trip="${esc(tr.id)}" role="button" aria-label="${esc(p.name)} is in ${esc(tr.city)} — show on map">✈️ ${esc(tr.city)}</span>` : ''}
+        ${tr ? `<span class="note-trip" data-trip="${esc(tr.id)}" role="button" aria-label="${esc(p.name)} is in ${esc(tr.city)} — show on map">${tripIco(tr)} ${esc(tr.city)}</span>` : ''}
       </button>`;
     }).join('');
   }
@@ -2360,7 +2377,7 @@
   // Take the map straight to where someone is traveling (no card).
   function goToTrip(t){
     if(!t) return;
-    toast('✈️', `${t.name} · ${t.city}`, tzText(tzForTrip(t)));
+    toast(tripIco(t), `${t.name} · ${t.city}`, tzText(tzForTrip(t)));
     closeSheet(); showView('map'); if(!tripsOn) setTripsOn(true); userMovedMap = true;
     if(map){ map.invalidateSize({ pan:false }); map.flyTo([t.lat, nearLon(t.lon)], Math.max(map.getZoom(), 10), { duration:1.2 }); showBack(true); }
   }
@@ -2389,7 +2406,7 @@
         <div class="hd"><span>Nº ${no}</span></div>
         <div class="bd">
           <div class="stamp"><span class="fl">${flagEmoji(t.cc)}</span>${esc(String(t.city || '').slice(0, 12))}</div>
-          <div class="who"><div class="n">${esc(t.name)}</div><div class="c">${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}</div>${when ? `<div class="d">${esc(when)}</div>` : ''}<div class="d tzl">${tzBadge(t)}</div></div>
+          <div class="who"><div class="n">${tripIco(t)} ${esc(t.name)}</div><div class="c">${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}</div>${when ? `<div class="d">${esc(when)}</div>` : ''}<div class="d tzl">${tzBadge(t)}</div></div>
           ${shape ? `<svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><path d="${shape}"/></svg>` : ''}
         </div></button>`;
     }).join('');
@@ -3005,14 +3022,14 @@
     openSheet(`
       <div class="sh-title"><div class="n">✈️ Trips</div><div class="w">${trips.length ? trips.length + ' traveling right now' : 'Nobody is traveling right now'}</div></div>
       <div class="mg-list" style="margin-top:14px">
-        <button class="btn dark" data-act="add">${pinIco()}Add a trip on the map</button>
+        <button class="btn bull big" data-act="add">✈️ I'm traveling &mdash; add a trip</button>
         <button class="btn" data-act="list">🎫 Who's traveling</button>
         <button class="btn" data-act="toggle-trips">${tripsOn ? '🙈 Hide trips on the map' : '👀 Show trips on the map'}</button>
       </div>`);
     sheetBody.onclick = e => {
       const b = e.target.closest('[data-act]'); if(!b) return;
       if(b.dataset.act === 'list'){ closeSheet(); showView('trips'); }
-      else if(b.dataset.act === 'add'){ closeSheet(); startAddTrip(); }
+      else if(b.dataset.act === 'add'){ openTripWizard(); }
       else if(b.dataset.act === 'toggle-trips'){ setTripsOn(!tripsOn); closeSheet(); }
     };
   }
@@ -3021,7 +3038,7 @@
     showView('settings'); openAcc('mypin-panel');
     setTimeout(()=> $('mypin-panel').scrollIntoView({ behavior:'smooth', block:'start' }), 60);
   });
-  $('trip-add-open').addEventListener('click', ()=> startAddTrip());
+  $('trip-add-open').addEventListener('click', ()=> openTripWizard());
 
   /* ---------- Add a trip by tapping the map ---------- */
   let addingTrip = null;   // { marker, place } while choosing a spot
@@ -3213,6 +3230,127 @@
     if(addingTrip && addingTrip.marker) placeTripAt(addingTrip.marker.getLatLng());
   });
   $('trip-cancel').addEventListener('click', endAddTrip);
+  /* =====================================================================
+     ✈️ I'm traveling — one simple window: who, where, save. No map hunting.
+     ===================================================================== */
+  let tw = null;   // { place, hits, mode }
+  // ✈️ flying or 🚢 on a cruise ship
+  const tripIco = t => (t && t.mode === 'cruise') ? '🚢' : '✈️';
+  const tripWord = t => (t && t.mode === 'cruise') ? 'on a cruise' : 'flying';
+  function travelNames(){
+    return [...new Set(pins.map(p => String(p.name || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  }
+  function openTripWizard(){
+    if(offline()){ toast('✈️', "You're offline", 'Adding a trip needs an internet connection.'); return; }
+    if(moving) cancelMove();
+    if(addingTrip) endAddTrip();
+    const names = travelNames(), mine = pins.find(p => isMine(p.id));
+    let last = ''; try{ last = localStorage.getItem(NAME_KEY) || ''; }catch(e){}
+    const pick = mine ? mine.name : (last && names.includes(last) ? last : '');
+    tw = { place:null, hits:[], mode:'fly' };
+    openSheet(`
+      <div class="sh-title"><div class="n">✈️ I'm traveling</div><div class="w">Let the group know where you are.</div></div>
+      <div class="tw">
+        <div class="tw-step"><i>1</i>Who is traveling?</div>
+        <select class="inp" id="tw-who">${pick ? '' : '<option value="">Choose your name…</option>'}${names.map(n => `<option ${n === pick ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>
+        <div class="tw-step"><i>2</i>How are you traveling?</div>
+        <div class="tw-mode" id="tw-mode">
+          <button type="button" class="on" data-mode="fly"><span>✈️</span>Flying</button>
+          <button type="button" data-mode="cruise"><span>🚢</span>Cruise ship</button>
+        </div>
+        <div class="tw-step"><i>3</i>Where are you?</div>
+        <div id="tw-where">
+          <button type="button" class="btn bull block big" id="tw-gps">📍 I'm there now &mdash; use my location</button>
+          <div class="tw-or">or type the place</div>
+          <input class="inp" id="tw-search" type="search" placeholder="🔍 City, island or port…" autocomplete="off" enterkeyhint="search">
+          <div class="trip-results" id="tw-results" hidden></div>
+        </div>
+        <div id="tw-chosen" hidden></div>
+        <div class="tw-step"><i>4</i>Save</div>
+        <button type="button" class="btn dark block big" id="tw-save" disabled>✈️ Save my trip</button>
+        <div class="status" id="sheet-status"></div>
+        <button type="button" class="linkbtn" id="tw-map">Or pick the spot on the map instead</button>
+      </div>`);
+    sheetBody.onclick = null;
+    $('tw-gps').onclick = twUseGps;
+    $('tw-mode').onclick = e => {
+      const b = e.target.closest('[data-mode]'); if(!b) return;
+      tw.mode = b.dataset.mode;
+      $('tw-mode').querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x === b));
+      $('tw-save').innerHTML = tw.mode === 'cruise' ? '🚢 Save my trip' : '✈️ Save my trip';
+    };
+    $('tw-map').onclick = ()=>{ closeSheet(); startAddTrip(); };
+    $('tw-save').onclick = twSave;
+    let timer = null, seq = 0;
+    $('tw-search').oninput = ()=>{
+      clearTimeout(timer);
+      const q = $('tw-search').value.trim();
+      if(q.length < 3){ $('tw-results').hidden = true; return; }
+      timer = setTimeout(async ()=>{
+        const my = ++seq;
+        twResults('Searching…');
+        const hits = (await searchPlaces(q)).map(fixTerritory);
+        if(my !== seq || !tw) return;
+        tw.hits = hits;
+        hits.length ? twResults() : twResults('No place found — check the spelling, or try a nearby city.');
+      }, 450);
+    };
+    $('tw-search').onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); if(tw.hits[0]) twChoose(tw.hits[0]); } };
+    $('tw-results').onclick = e => { const b = e.target.closest('[data-hit]'); if(b) twChoose(tw.hits[+b.dataset.hit]); };
+  }
+  function twResults(msg){
+    const box = $('tw-results'); if(!box) return;
+    box.hidden = false;
+    box.innerHTML = msg ? `<div class="tr-msg">${esc(msg)}</div>` : tw.hits.map((p, i) =>
+      `<button type="button" class="tr-hit" data-hit="${i}"><span class="f">${flagEmoji(p.cc) || '📍'}</span>
+        <span class="tx"><b>${esc(p.city)}</b><small>${esc([p.area, p.country].filter(Boolean).join(', '))}</small></span></button>`).join('');
+  }
+  function twChoose(place){
+    if(!tw || !place) return;
+    tw.place = place;
+    $('tw-where').hidden = true;
+    const c = $('tw-chosen'); c.hidden = false;
+    c.innerHTML = `<div class="tw-place"><span class="f">${flagEmoji(place.cc) || '📍'}</span>
+      <span class="tx"><b>${esc(place.city)}</b><small>${esc([place.area, place.country].filter(Boolean).join(', ') || 'Selected spot')}</small></span>
+      <button type="button" class="btn" id="tw-change">Change</button></div>`;
+    $('tw-change').onclick = ()=>{ tw.place = null; c.hidden = true; $('tw-where').hidden = false; $('tw-save').disabled = true; $('tw-search').focus(); };
+    $('tw-save').disabled = false;
+    sheetMsg('');
+  }
+  async function twUseGps(){
+    const btn = $('tw-gps'); btn.disabled = true;
+    sheetMsg('Finding where you are… tap Allow if your phone asks.');
+    let pos;
+    try{ pos = await getPosition(); }
+    catch(err){
+      btn.disabled = false;
+      return sheetMsg(err && err.code === 1 ? "Location is blocked for this page — type the place instead." : "Couldn't get your location — type the place instead.", 'error');
+    }
+    sheetMsg('Got it — finding the town…');
+    const place = await reverseLookup(pos.coords.latitude, pos.coords.longitude);
+    btn.disabled = false;
+    twChoose(place);
+  }
+  async function twSave(){
+    if(!tw || !tw.place) return;
+    const name = $('tw-who').value;
+    if(!name) return sheetMsg('Choose your name first (step 1).', 'error');
+    if(offline()) return sheetMsg("You're offline — try again when you have internet.", 'error');
+    $('tw-save').disabled = true; sheetMsg('Saving…');
+    try{ localStorage.setItem(NAME_KEY, name); }catch(e){}
+    const pl = tw.place;
+    const latest = await loadTrips(); if(latest.ok) trips = latest.data;
+    // One trip per person: a new trip replaces their old one.
+    trips = trips.filter(t => t.name !== name);
+    const trip = { id:'v_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      name, city:pl.city, country:pl.country, cc:pl.cc, lat:pl.lat, lon:pl.lon, approx:!!pl.approx, mode:tw.mode, ts:Date.now() };
+    trips.push(trip); addMine(trip.id);
+    const ok = await saveTrips(trips);
+    tw = null; renderAll();
+    goToTrip(trip);
+    toast(tripIco(trip), `${name} is in ${trip.city}!`, ok ? 'Everyone can see it on the map. Tap "Back home" in Settings → Trips when you return.' : "Saved on this phone, but couldn't reach the group yet.");
+  }
+
   $('trip-save').addEventListener('click', async ()=>{
     if(!addingTrip || !addingTrip.place) return;
     if(offline()) return setStatus($('trip-status'), "You're offline — try again when you have internet.", 'error');
@@ -3222,7 +3360,8 @@
     const pl = addingTrip.place;
     const latest = await loadTrips(); if(latest.ok) trips = latest.data;
     const trip = { id:'v_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
-      name, city:pl.city, country:pl.country, cc:pl.cc, lat:pl.lat, lon:pl.lon, approx:!!pl.approx, ts:Date.now() };
+      name, city:pl.city, country:pl.country, cc:pl.cc, lat:pl.lat, lon:pl.lon, approx:!!pl.approx, mode:(tw && tw.mode) || 'fly', ts:Date.now() };
+    tw = null;
     trips.push(trip); addMine(trip.id);
     const ok = await saveTrips(trips);
     endAddTrip(); renderAll();
@@ -3232,24 +3371,25 @@
   $('lg-group').addEventListener('click', ()=> showView('members'));
   // "✈️ N traveling": go straight to them on the map.
   $('lg-travel').addEventListener('click', ()=>{
-    if(!trips.length){ toast('✈️', 'Nobody is traveling right now', ''); return; }
-    if(trips.length === 1){ goToTrip(trips[0]); return; }
+
     openTravelers();
   });
   // Several people traveling: show who, and tap one to fly to them.
   function openTravelers(){
     const list = sortedTrips();
     openSheet(`
-      <div class="sh-title"><div class="n">✈️ ${list.length} traveling</div><div class="w">Tap someone to see where they are.</div></div>
+      <div class="sh-title"><div class="n">✈️ ${list.length ? list.length + ' traveling' : 'Nobody is traveling'}</div><div class="w">${list.length ? 'Tap someone to see where they are.' : 'Going somewhere? Add your trip below.'}</div></div>
+      <button class="btn bull block big" data-trip-add style="margin-top:12px">✈️ I'm traveling &mdash; add a trip</button>
       <div class="tv-list">${list.map(t => {
         const when = t.ts ? new Date(t.ts).toLocaleDateString(undefined, { month:'short', day:'numeric' }) : '';
         return `<button class="tv-row" data-trip="${esc(t.id)}">
           <span class="pin-badge">${pinSvg(tripColor(t), 26)}</span>
-          <span class="tv-tx"><b>${esc(t.name)}</b><span>${flagEmoji(t.cc)} ${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}${when ? ' · since ' + esc(when) : ''}</span><span class="tv-time">${tzBadge(t)}</span></span>
+          <span class="tv-tx"><b>${tripIco(t)} ${esc(t.name)}${t.mode === 'cruise' ? ' <em class="tv-mode">on a cruise</em>' : ''}</b><span>${flagEmoji(t.cc)} ${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}${when ? ' · since ' + esc(when) : ''}</span><span class="tv-time">${tzBadge(t)}</span></span>
           <span class="tv-go">See ›</span></button>`;
       }).join('')}</div>
-      <button class="btn block" data-trip-all>🌍 Show everyone traveling</button>`);
+      ${list.length > 1 ? '<button class="btn block" data-trip-all>🌍 Show everyone traveling</button>' : ''}`);
     sheetBody.onclick = e => {
+      if(e.target.closest('[data-trip-add]')){ openTripWizard(); return; }
       const r = e.target.closest('[data-trip]');
       if(r){ goToTrip(trips.find(x => x.id === r.dataset.trip)); return; }
       if(e.target.closest('[data-trip-all]')){
@@ -3268,7 +3408,7 @@
     openSheet(`
       <div class="sh-head">
         <div class="sh-cal" style="--c:#C0392B"><div class="m">${joinedLabel(t.ts)}</div><div class="d">${flagEmoji(t.cc)}</div></div>
-        <div class="sh-title"><div class="n">${esc(t.name)}</div><div class="w">✈️ ${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}${t.approx ? ' (approx.)' : ''}</div></div>
+        <div class="sh-title"><div class="n">${esc(t.name)}</div><div class="w">${tripIco(t)} ${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}${t.approx ? ' (approx.)' : ''}</div></div>
       </div>
       <div class="sh-acts"><button class="btn dark" data-act="show">${ICON.pin}Show on map</button></div>
       <button class="manage-toggle" data-act="toggle" aria-expanded="${!!opts.manage}"><span style="display:flex;gap:8px;align-items:center">${ICON.gear}Manage this trip</span>${ICON.chev}</button>
@@ -3334,6 +3474,7 @@
           <button class="btn" data-mp="fine" ${dis}>🗺️ Move my pin on the map</button>
           <button class="btn" data-mp="edit" ${dis}>✏️ Change my name or ZIP</button>
           <button class="btn" data-mp="show">👀 Show me on the map</button>
+          <button class="btn bull" data-mp="travel">✈️ I'm traveling</button>
         </div>
         <div class="status" id="mp-status"></div>
         <button class="linkbtn" data-mp="notme">This isn't me</button>`;
@@ -3527,6 +3668,7 @@
     switch(b.dataset.mp){
       case 'gps': return mpUseLocation(b);
       case 'unlock': if(me){ unlocked.add(me.id); renderMyPin(true); } return;
+      case 'travel': openTripWizard(); return;
       case 'zipopen': mpZipOpen = true; renderMyPin(true); setTimeout(()=> $('mp-zip') && $('mp-zip').focus(), 50); return;
       case 'zipgo': return mpZip();
       case 'claim': {
@@ -3797,11 +3939,12 @@
     const el = $('trip-manage'); if(!el) return;
     if(!trips.length){ el.innerHTML = '<p class="help" style="margin:0">Nobody is traveling right now.</p>'; return; }
     el.innerHTML = sortedTrips().map(t => `<div class="tm-row">
-        <span class="tm-flag">${flagEmoji(t.cc)}</span>
+        <span class="tm-flag">${tripIco(t)}${flagEmoji(t.cc)}</span>
         <span class="tm-tx"><b>${esc(t.name)}</b><span>${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}</span></span>
         <button class="btn bear tm-btn" data-rm="${esc(t.id)}" ${isLocked(t) ? 'disabled title="Locked — unlock above to remove"' : ''}>Back home</button>
       </div>`).join('');
   }
+  $('set-trip-add').addEventListener('click', ()=> openTripWizard());
   $('trip-manage').addEventListener('click', async e => {
     const b = e.target.closest('[data-rm]'); if(!b || b.disabled) return;
     const t = trips.find(x => x.id === b.dataset.rm); if(!t) return;
