@@ -40,7 +40,7 @@
   @media (min-width:600px){ html{ background:#061A22; } }
   .app-bg{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:0; }
   body.on-goose .app-bg{ display:none; }
-  #bg-flags{ display:none; } body.show-flags #bg-flags{ display:inline; }
+  #bg-flags{ display:none !important; }   /* flags turned off on every page */
   .app > *:not(.app-bg){ position:relative; z-index:1; }
   .app{
     position:fixed; inset:0;
@@ -127,7 +127,11 @@
   .btn.bear{ background:#fff; border-color:#F3C3C5; color:var(--bear); }
   .btn.dark{ background:var(--ocean); border-color:var(--ocean); color:#fff; }
   .btn:disabled{ opacity:.45; cursor:not-allowed; }
-  .btn:active:not(:disabled){ transform:scale(0.98); }
+  .btn{ box-shadow:0 3px 0 rgba(0,0,0,0.18), 0 4px 8px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.55);
+    background-image:linear-gradient(180deg, rgba(255,255,255,0.22), rgba(0,0,0,0.04)); transition:transform .08s, box-shadow .08s; }
+  .btn:active:not(:disabled){ transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.18), 0 2px 4px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.4); }
+  .trw2-copy{ box-shadow:0 3px 0 #D6CCB4, 0 4px 6px rgba(0,0,0,0.12), inset 0 1px 0 #fff; background-image:linear-gradient(180deg,#FFFFFF,#F4F1EA); }
+  .trw2-copy:active{ transform:translateY(2px); box-shadow:0 1px 0 #D6CCB4; }
   .status{ min-height:18px; margin-top:10px; font-size:13.5px; font-weight:600; color:var(--ink-soft); }
   .status.error{ color:#C0392B; } .status.success{ color:#11865C; }
 
@@ -623,10 +627,14 @@
   }
 
   /* trade rows: ticker on top, trade under it; Copy + OPEN and the date on the right */
-  .trw2{ display:grid; grid-template-columns:auto 1fr; grid-template-areas:"sym right" "tos tos"; column-gap:8px; row-gap:6px;
+  .trw2{ display:grid; grid-template-columns:auto 1fr auto; grid-template-areas:"sym day right" "tos tos tos"; column-gap:8px; row-gap:6px;
     background:var(--paper); border-radius:12px; padding:8px 9px; box-shadow:0 3px 10px rgba(0,0,0,0.22); cursor:pointer; }
   .trw2 > .trw-sym{ grid-area:sym; align-self:start; min-width:62px; padding:5px 10px 4px; font-size:13.5px; }
   .trw2-tos{ grid-area:tos; }
+  .trw2-day{ grid-area:day; align-self:center; justify-self:center; display:flex; flex-direction:column; align-items:center; line-height:1; text-align:center; }
+  .trw2-day b{ font-family:'Inter',sans-serif; font-weight:800; font-size:13px; color:#B45309; white-space:nowrap; }
+  .trw2-day small{ font-size:8.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:#92887A; margin-top:2px; white-space:nowrap; }
+  .trw2.closed .trw2-day b{ color:#991B1B; }
   .trw2-right{ grid-area:right; }
   .trw2-tos{ font-family:'JetBrains Mono',monospace; font-size:10.5px; line-height:1.35; color:var(--ink); word-break:break-word;
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
@@ -744,9 +752,33 @@
   .set-board .set-note:nth-last-child(2):nth-child(3n+1){ grid-column:2 / span 2; }
   .set-board .sn-ico{ font-size:20px; } .set-board .sn-ico svg.pin-ico{ width:15px !important; height:20px !important; }
   .set-board .sn-lbl{ font-size:14px !important; line-height:1; }
+  /* Golden Goose: key-point cards, two across; Golden rules spans the full width */
+  .gg-cards{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 12px; }
+  .gg-card{ display:flex; flex-direction:column; align-items:stretch; text-align:left; padding:9px 9px 8px; border-radius:15px; cursor:pointer;
+    background:var(--cb); border:1px solid var(--ce); color:var(--ink); font:inherit;
+    box-shadow:0 4px 0 var(--ce), 0 6px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8); transition:transform .08s, box-shadow .08s; }
+  .gg-card:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--ce), 0 2px 5px rgba(0,0,0,0.2); }
+  .gg-card:last-child:nth-child(odd){ grid-column:1 / -1; }
+  .gg-card b{ display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:800; line-height:1.15; margin-bottom:4px; white-space:nowrap; }
+  .gg-card .gi{ font-size:15px; line-height:1; flex-shrink:0; } .gg-card .gi svg.cal-ico{ width:20px; height:20px; }
+  .gg-card ul{ margin:0; padding-left:14px; font-size:10.5px; line-height:1.35; flex:1; }
+  .gg-card li{ white-space:nowrap; }
+  .gg-card li{ margin:1px 0; }
+  .gg-card{ position:relative; }
+  .gg-card b{ padding-right:20px; }
+  .gg-caret{ position:absolute; top:7px; right:7px; width:18px; height:18px; }
+  .gg-caret svg{ width:100%; height:100%; display:block; filter:drop-shadow(0 1px 1px rgba(0,0,0,0.25)); }
+  .gg-card .more{ align-self:flex-end; margin-top:6px; font-size:12px; font-weight:800; color:#123C4D; opacity:.75; }
+
+  /* wider, easy-to-grab scroll bar on computers */
+  .view.scroll::-webkit-scrollbar, .sheet::-webkit-scrollbar{ width:28px; }
+  .view.scroll::-webkit-scrollbar-track, .sheet::-webkit-scrollbar-track{ background:rgba(0,0,0,0.25); border-radius:14px; }
+  .view.scroll::-webkit-scrollbar-thumb, .sheet::-webkit-scrollbar-thumb{ background:linear-gradient(90deg,#4ADE80,#16A34A); border-radius:14px; border:4px solid rgba(0,0,0,0.25); min-height:60px; }
+  .view.scroll::-webkit-scrollbar-thumb:hover, .sheet::-webkit-scrollbar-thumb:hover{ background:#22C55E; }
+  .view.scroll{ scrollbar-width:auto; scrollbar-color:#22C55E rgba(0,0,0,0.25); }
   .gg-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px 8px; max-width:420px; margin:0 auto 12px; }
   .gg-grid .gg-note:last-child:nth-child(3n+1){ grid-column:2; }
-  #view-goose .gg-grid{ gap:22px 12px; padding:12px 4px 4px; }
+  #view-goose .gg-grid{ gap:30px 12px; padding:22px 4px 4px; }
   /* Golden Goose notes: square, fill their column, and grow if a label needs more room */
   #view-goose .gg-note{ width:100%; height:auto; aspect-ratio:1 / 1; min-height:0; padding:16px 6px 10px; justify-content:center; gap:5px; }
   #view-goose .gg-note .sn-ico{ font-size:28px; }
@@ -754,6 +786,15 @@
   #view-goose .gg-note .sn-lbl.long{ font-size:16px !important; }
   #view-goose .gg-note .sn-lbl .gg-q{ font-size:14px; }
   #view-goose .gg-note .sn-ico svg.cal-ico{ width:34px; height:34px; }
+  /* the topic icon is the pin: no coin pin, icon sits on the top edge like a push-pin */
+  #view-goose .gg-note .note-pin{ display:none !important; }
+  #view-goose .gg-note{ padding-top:20px; }
+  #view-goose .gg-note .sn-ico{ position:absolute; top:-17px; left:50%; transform:translateX(-50%); z-index:2;
+    width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:21px; line-height:1;
+    background:radial-gradient(circle at 35% 28%, #FFFFFF 0%, #F1F5F9 55%, #CBD5E1 100%); border:1px solid rgba(0,0,0,0.25);
+    box-shadow:0 3px 0 rgba(0,0,0,0.25), 0 4px 6px rgba(0,0,0,0.3), inset 0 1.5px 0 #fff; }
+  #view-goose .gg-note .sn-ico.q{ font-size:24px; }
+  #view-goose .gg-note .sn-ico svg.cal-ico{ width:24px; height:24px; }
   .gg-tile{ display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:6px; padding:12px 4px 10px; border-radius:16px;
     background:linear-gradient(180deg, var(--pl) 0%, var(--pc) 100%); border:1px solid var(--pd);
     box-shadow:0 4px 0 var(--pd), 0 6px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8); color:#1F2F35; cursor:pointer; }
@@ -778,7 +819,7 @@
   .gg-note{ margin:0 0 9px; padding:8px 10px; border-radius:10px; background:#FFF8DD; border:1px solid #F3D78A; font-size:13.5px; color:#5B4300; }
   .gg-tos{ margin-top:10px; padding:8px 10px; border-radius:10px; background:#F3EEE2; font-family:'JetBrains Mono',monospace; font-size:11px; line-height:1.4; color:#33505A; word-break:break-word; }
   .gg-tos span{ display:block; font-family:'Inter',sans-serif; font-size:11.5px; font-weight:700; color:var(--ink-soft); margin-bottom:3px; }
-  .edu{ display:block; margin:0 0 4px; color:#000; font-size:9px; font-weight:500; line-height:1.3; text-shadow:none; }
+  .edu{ display:block; margin:0 0 4px; color:#000; font-size:11px; font-weight:500; line-height:1.3; text-shadow:none; }
   .map-copy .edu{ margin:0 0 2px; }
   .foot-line{ display:block; white-space:nowrap; }
   .foot-line .ver{ font-size:11px; opacity:.85; }
@@ -986,6 +1027,37 @@
   .wwl-tx small{ font-size:12.5px; font-weight:600; color:#166534; }
   .wwl-go{ flex-shrink:0; font-weight:800; font-size:14px; background:#15803D; color:#fff; padding:7px 11px; border-radius:20px; box-shadow:0 2px 0 #0F5A2B; }
 
+  /* Trades: sort buttons */
+  .tr-sort{ display:flex; align-items:center; gap:5px; width:100%; margin:2px 0 10px; flex-wrap:nowrap; overflow-x:auto; }
+  .trade-panel{ position:relative; }
+  .trade-x{ position:absolute !important; float:none !important; top:4px; right:4px; margin:0 !important; }
+  #trade-drop-panel #trade-form{ padding-right:34px; }
+  .tr-sort .yr-btn{ position:relative; display:inline-flex; align-items:center; border-radius:20px; cursor:pointer;
+    background:linear-gradient(180deg,#FFFFFF,#F1EEE6); border:1px solid #CFC4AA; box-shadow:0 3px 0 #BFB394, 0 4px 8px rgba(0,0,0,0.25), inset 0 1px 0 #fff; }
+
+  .tr-sort .yr-btn select{ appearance:none; -webkit-appearance:none; border:none; background:transparent; width:100%; text-align:center; text-align-last:center;
+    font:inherit; font-size:12.5px; font-weight:700; color:var(--ink); padding:0 12px 0 2px; cursor:pointer; }
+
+  .tr-sort .yr-btn::after{ content:'▾'; position:absolute; right:7px; top:50%; transform:translateY(-50%); font-size:10px; color:#56707A; pointer-events:none; }
+  .tr-sort button, .tr-sort .yr-btn{ flex:0 0 auto !important; padding:6px 9px !important; font-size:12px !important; }
+  .tr-sort .yr-btn{ padding:6px 0 !important; width:58px; }
+  .tr-sort .yr-btn select{ font-size:12px !important; }
+  .tr-sort button.wide{ flex:1 1 auto !important; overflow:hidden; letter-spacing:-0.2px; padding:6px 4px !important; }
+  .tr-sort button[data-sort="ticker"], .tr-sort button[data-sort="date"]{ width:56px; padding:6px 0 !important; }
+  .tr-sort button.on{ color:var(--ink) !important; border:2px solid #123C4D !important; box-shadow:0 3px 0 #123C4D, 0 4px 8px rgba(0,0,0,0.25), inset 0 1px 0 #fff !important; }
+  .tr-sort .dir{ color:var(--ink) !important; }
+  .tr-sort .yr-btn select{ padding:0 10px 0 0 !important; }
+  .tr-sort .red{ color:#DC2626; }
+  .tr-sort .dir{ font-size:15px; font-weight:900; color:#0E7A52; margin-left:3px; }
+  .tr-sort .dir:empty{ display:none; }
+  .tr-sort .lbl{ font-size:13px; font-weight:700; color:#D9F5E4; flex-shrink:0; }
+  .tr-sort button, .tr-sort .yr-btn{ flex:1 1 0; min-width:0; justify-content:center; padding:6px 6px; border-radius:20px; font-size:12.5px; font-weight:700; white-space:nowrap; cursor:pointer;
+    background:linear-gradient(180deg,#FFFFFF,#F1EEE6); color:var(--ink); border:1px solid #CFC4AA;
+    box-shadow:0 3px 0 #BFB394, 0 4px 8px rgba(0,0,0,0.25), inset 0 1px 0 #fff; transition:transform .08s, box-shadow .08s; }
+  .tr-sort button:active{ transform:translateY(2px); box-shadow:0 1px 0 #BFB394, 0 2px 4px rgba(0,0,0,0.2); }
+  .tr-sort button.on{ background:linear-gradient(180deg,#FFFFFF,#F1EEE6); color:#0E7A52; border:2px solid #16A34A;
+    box-shadow:0 3px 0 #0F6B33, 0 4px 8px rgba(0,0,0,0.25), inset 0 1px 0 #fff; }
+
   /* Settings: delete a pin */
   .dl-row{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px dashed var(--line); }
   .dl-row:last-child{ border-bottom:none; }
@@ -1101,6 +1173,7 @@
         <button class="btn" id="trade-copy-all">Copy all</button>
       </div>
       <div class="panel trade-panel" id="trade-drop-panel" hidden>
+        <button type="button" class="sheet-x trade-x" id="trade-x" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7 H20 L12 19 Z" fill="#16A34A" stroke="#0F6B33" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
         <form id="trade-form" autocomplete="off">
           <textarea class="inp" id="trade-text" rows="2" spellcheck="false" autocapitalize="characters" placeholder="Paste TOS trade(s) here — e.g. BUY +1 VERTICAL SPX 100 (Weeklys) 20 NOV 26 5900/5910 CALL @1.25 LMT"></textarea>
           <div class="trade-row2">
@@ -1111,6 +1184,13 @@
           <div class="parse-hint" id="trade-hint"></div>
           <div class="status" id="trade-status"></div>
         </form>
+      </div>
+      <div class="tr-sort" id="tr-sort" role="group" aria-label="Sort trades">
+        <span class="lbl">Sort:</span>
+        <button type="button" data-sort="ticker">Ticker</button>
+        <button type="button" data-sort="date" title="Tap again to flip newest / oldest">Date<span class="dir" id="sort-dir"></span></button>
+        <label class="yr-btn" title="Show one year"><select id="tr-year" aria-label="Year"></select></label>
+        <button type="button" data-sort="status" class="wide">🟢 Open / 🔴 <span class="red">Closed</span></button>
       </div>
       <div class="trade-list" id="trade-list"></div>
       <div class="foot"><span class="edu">For education only &mdash; not financial advice.</span><span class="thor">&copy; 2026 Thor</span></div>
@@ -1282,6 +1362,7 @@
             <li><b>＋ Add</b> &rarr; paste one or more thinkorswim orders (one per line), pick the date, add a note, tap <b>Add</b>.</li>
             <li><b>Copy</b> puts a trade back on your clipboard, ready to paste into thinkorswim. <b>Copy all</b> copies the whole list.</li>
             <li>Type a symbol in the search box to find a trade.</li>
+            <li><b>Sort:</b> Ticker (A&ndash;Z), Date (tap again to flip newest &darr; / oldest &uarr;), the <b>year</b> button (2026 onward, or All), or 🟢 Open / 🔴 Closed.</li>
             <li>Tap <b>OPEN</b> to close a trade; it turns red <b>CLOSED</b>. Tap a trade to edit, reopen or delete it.</li>
           </ul>
         </div>
@@ -1370,7 +1451,7 @@
         <h3>How editing works</h3>
         <p class="help" style="margin:0;">Tap any friend's card, then <b>Manage</b> to edit, move the pin, or leave the group. Trades can be changed for 24 hours, pins and trips for 48 hours, then they lock so nothing gets changed by accident. Tap the lock button to unlock, make your change, and lock it again.</p>
       </div>
-    <div class="stamp-line" id="debug-stamp">build 2026-11-17-113</div>
+    <div class="stamp-line" id="debug-stamp">build 2026-11-17-125</div>
   </div>
 </div>
 <div id="print-area" aria-hidden="true"></div>
@@ -2437,7 +2518,10 @@
       [0, -360, 360].forEach(shift => {
         const m = L.marker([t.lat, t.lon + shift], { icon, title:`${t.name} in ${t.city}` });
         m.bindTooltip(`${esc(t.name)} · ${tzBadge(t, true)}`, { permanent:true, direction:'top', offset:[0, 0], className:'pin-label trip-label' });
-        m.on('click', ()=>{ if(moving || addingTrip) return; if(isMyTrip(t)) openMyTrip(t); else goToTrip(t); });
+        m.on('click', ()=>{ if(moving || addingTrip) return;
+          if(isMyTrip(t)) openMyTrip(t);
+          else if(!myPin()) askIfMyTrip(t);
+          else goToTrip(t); });
         m.addTo(tripsLayer);
       });
     });
@@ -2507,7 +2591,6 @@
   // Take the map straight to where someone is traveling (no card).
   function goToTrip(t){
     if(!t) return;
-    toast(tripIco(t), `${t.name} · ${t.city}`, tzText(tzForTrip(t)));
     closeSheet(); showView('map'); if(!tripsOn) setTripsOn(true); userMovedMap = true;
     if(map){ map.invalidateSize({ pan:false }); map.flyTo([t.lat, nearLon(t.lon)], Math.max(map.getZoom(), 10), { duration:1.2 }); showBack(true); }
   }
@@ -2919,6 +3002,7 @@
     const time = d.toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' });
     return `<div class="trw2 ${side}${t.closed ? ' closed' : ''}" data-id="${esc(t.id)}" role="button" tabindex="0" aria-label="${esc(sym)} trade, ${esc(day)}">
       <span class="trw-sym k3d" style="${tickerStyle(sym)}">${esc(sym)}</span>
+      <span class="trw2-day"><b>${esc(tradeDateText(t, { month:'short', day:'numeric' }))}</b><small>${esc(tradeDateText(t, { weekday:'short' }) + ' · ' + tradeDateText(t, { year:'numeric' }))}</small></span>
       <div class="trw2-right">
         <div class="trw2-btns">
           <span class="trw2-copy" data-copy="${esc(t.id)}" role="button" aria-label="Copy the ${esc(sym)} trade">${COPY_SVG}Copy</span>
@@ -2968,25 +3052,74 @@
     closeSheet(); renderTrades();
     toast('✓', 'Trade closed', ok ? 'Undo it under Manage this trade.' : "Couldn't reach the group yet.");
   }
+  function tradeYear(t){ const d = t.date || (t.ts ? new Date(t.ts).toISOString().slice(0, 10) : ''); return d.slice(0, 4); }
+  function fillYears(){
+    const sel = $('tr-year'); if(!sel) return;
+    let keep = sel.options.length ? sel.value : null;
+    // A choice made in an earlier year is dropped on January 1, so everyone starts on the new year.
+    if(keep === null){ try{
+      if(+localStorage.getItem('moFriendsTradeYearSetIn') === new Date().getFullYear()) keep = localStorage.getItem('moFriendsTradeYear');
+    }catch(e){} }
+    if(keep === null) keep = String(Math.max(2026, new Date().getFullYear()));
+    const last = Math.max(new Date().getFullYear(), ...trades.map(t => +tradeYear(t) || 0), 2026);
+    let o = '';
+    for(let y = 2026; y <= last; y++) o += `<option value="${y}">${y}</option>`;
+    o += '<option value="">All</option>';
+    sel.innerHTML = o; sel.value = [...sel.options].some(x => x.value === keep) ? keep : '2026';
+  }
   function filteredTrades(){
     const q = $('trade-search').value.trim().toLowerCase();
+    const yr = $('tr-year') ? $('tr-year').value : '';
     // Newest trade date first (the date picked when adding it); same day → most recently added first.
     const day = t => t.date || (t.ts ? new Date(t.ts - new Date(t.ts).getTimezoneOffset() * 60000).toISOString().slice(0, 10) : '');
     return [...trades].sort((a,b)=> day(b).localeCompare(day(a)) || (b.ts||0) - (a.ts||0))
-      .filter(t => !q || (t.text + ' ' + (t.note||'')).toLowerCase().includes(q));
+      .filter(t => (!q || (t.text + ' ' + (t.note||'')).toLowerCase().includes(q)) && (!yr || tradeYear(t) === yr));
   }
+  // How the list is sorted: open/closed groups (default), newest date first, or ticker A–Z.
+  let tradeSort = 'status';
+  try{ tradeSort = localStorage.getItem('moFriendsTradeSort') || 'status'; }catch(e){}
+  // Date: first tap = newest first; tap again = oldest first (and back).
+  let dateOldFirst = false;
+  try{ dateOldFirst = localStorage.getItem('moFriendsTradeSortOld') === '1'; }catch(e){}
+  function paintSortBtns(){
+    document.querySelectorAll('#tr-sort [data-sort]').forEach(b => b.classList.toggle('on', b.dataset.sort === tradeSort));
+    $('sort-dir').textContent = tradeSort === 'date' ? (dateOldFirst ? '↑' : '↓') : '';
+  }
+  $('tr-sort').addEventListener('click', e => {
+    const b = e.target.closest('[data-sort]'); if(!b) return;
+    if(b.dataset.sort === 'date') dateOldFirst = tradeSort === 'date' ? !dateOldFirst : false;
+    tradeSort = b.dataset.sort;
+    try{ localStorage.setItem('moFriendsTradeSort', tradeSort); localStorage.setItem('moFriendsTradeSortOld', dateOldFirst ? '1' : '0'); }catch(e){}
+    paintSortBtns(); renderTrades();
+  });
+  paintSortBtns();
+  function fitSortRow(){
+    const w = document.querySelector('#tr-sort .wide'); if(!w || !w.offsetWidth) return;
+    let f = 12; w.style.setProperty('font-size', f + 'px', 'important');
+    while(w.scrollWidth > w.clientWidth + 0.5 && f > 9){ f -= 0.5; w.style.setProperty('font-size', f + 'px', 'important'); }
+  }
+  window.addEventListener('resize', ()=> setTimeout(fitSortRow, 80));
+  $('tr-year').addEventListener('change', ()=>{
+    try{ localStorage.setItem('moFriendsTradeYear', $('tr-year').value); localStorage.setItem('moFriendsTradeYearSetIn', String(new Date().getFullYear())); }catch(e){}
+    renderTrades();
+  });
   function renderTrades(){
-    assignTickerColors();
+    assignTickerColors(); fillYears();
     $('trade-count').textContent = trades.length ? `${trades.length} trade${trades.length === 1 ? '' : 's'}` : '';
     const list = filteredTrades();
     $('trade-list').innerHTML = !trades.length
       ? '<div class="empty">No trades yet &mdash; paste one above 📈</div>'
       : (list.length ? (()=>{
+          if(tradeSort === 'date') return (dateOldFirst ? [...list].reverse() : list).map(tradeCardHtml).join('');
+          if(tradeSort === 'ticker'){
+            const sym = t => { const p = parseTOS(t.text.split('\n')[0]); return (p ? p.symbol : t.text.trim().split(/\s+/)[0] || '').toUpperCase(); };
+            return [...list].sort((a, b) => sym(a).localeCompare(sym(b))).map(tradeCardHtml).join('');
+          }
           const op = list.filter(t => !t.closed), cl = list.filter(t => t.closed);
           return (op.length ? `<div class="tr-sec">🟢 Open <span class="ct">${op.length}</span></div>` + op.map(tradeCardHtml).join('') : '')
                + (cl.length ? `<div class="tr-sec">🔴 Closed <span class="ct">${cl.length}</span></div>` + cl.map(tradeCardHtml).join('') : '');
-        })() : '<div class="empty">No trades match that search.</div>');
-    fitTradeLines();
+        })() : '<div class="empty">No trades match that search or year.</div>');
+    fitTradeLines(); fitSortRow();
   }
   // Shrink each trade line just enough to fit on one row (down to a size that
   // is still easy to read). Only very long lines on a narrow phone wrap.
@@ -3020,6 +3153,7 @@
     if(open) setTimeout(()=> $('trade-text').focus(), 50);
   }
   $('trade-drop').addEventListener('click', ()=> setTradeDrop($('trade-drop-panel').hidden));
+  $('trade-x').addEventListener('click', ()=> setTradeDrop(false));
   $('trade-list').addEventListener('click', async e => {
     const cl = e.target.closest('[data-close]');
     if(cl){ e.stopPropagation(); openCloseTrade(cl.dataset.close); return; }
@@ -3471,7 +3605,27 @@
     twChoose(place);
   }
   // Tapping your own trip pin: "I'm back home" or "I'm traveling to…".
-  function isMyTrip(t){ const me = myPin(); return !!t && (isMine(t.id) || (me && me.name === t.name)); }
+  function isMyTrip(t){
+    if(!t) return false;
+    const me = myPin(), nm = String(t.name || '').trim().toLowerCase();
+    return isMine(t.id) || (me && String(me.name || '').trim().toLowerCase() === nm) || (!!nm && savedName().trim().toLowerCase() === nm);
+  }
+  function askIfMyTrip(t){
+    openSheet(`<div class="sh-title"><div class="n">${tripIco(t)} ${esc(t.name)} · ${esc(t.city)}</div></div>
+      <div class="mg-list" style="margin-top:14px">
+        <button class="btn bull big" data-me="yes">🙋 This is me</button>
+        <button class="btn" data-me="no">Just show me the map</button>
+      </div>`);
+    sheetBody.onclick = e => {
+      const b = e.target.closest('[data-me]'); if(!b) return;
+      if(b.dataset.me === 'no'){ goToTrip(t); return; }
+      addMine(t.id);
+      const home = pins.find(p => String(p.name || '').trim().toLowerCase() === String(t.name || '').trim().toLowerCase());
+      if(home) addMine(home.id);
+      try{ localStorage.setItem(NAME_KEY, t.name); }catch(e){}
+      renderAll(); openMyTrip(t);
+    };
+  }
   function openMyTrip(t){
     const locked = isLocked(t);
     openSheet(`
@@ -3833,26 +3987,37 @@
     panels[0].parentNode.insertBefore(board, panels[0]);
   })();
 
-  // Golden Goose: the rule sections become small 3D tiles; tap one to read it in a pop-up window.
+  // Golden Goose: colored cards with the key points; tap a card for the full rules in a pop-up.
   (function(){
     const view = $('view-goose');
     const panels = [...view.querySelectorAll(':scope > .panel.acc')];
     if(!panels.length) return;
-    const grid = document.createElement('div'); grid.className = 'gg-grid';
+    const KEY = [
+      ['What is the Golden Goose', '#FEF9C3', '#E2CD6E', ['Acts like owning the stock', 'Put spread pays for a call']],
+      ['Pick the stock',           '#FBF3B4', '#D9C661', ['Bullish for 1&ndash;2 years', 'Liquid options, over $30']],
+      ['Enter the trade',          '#F1F5B7', '#CBD271', ['1+ year out', 'Sell a put spread', 'Buy an ITM call']],
+      ['Take profits',             '#E5F4BC', '#B5CF73', ['GTC orders day one', 'Put spread at 50%']],
+      ['Monthly income',           '#D8F1C6', '#9FCC80', ['Call ~1 month out', 'Buy back at 80%']],
+      ['Close the whole trade',    '#CDEDD0', '#8CC79A', ['About 6 months left', 'Big profit or loss']],
+      ['Golden rules',             '#BFE6CB', '#76BB8C', ['No naked calls or puts', 'Know your max loss']]
+    ];
+    const grid = document.createElement('div'); grid.className = 'gg-cards';
     panels.forEach(pn => {
       const ico = pn.querySelector('.acc-ico'), lbl = pn.querySelector('.acc-lbl > span:last-child');
-      const t = document.createElement('button');
-      const k = grid.children.length, h = hashStr('gg' + k + lbl.textContent);
-      t.type = 'button'; t.className = 'set-note gg-note';
-      t.style.background = NOTE_COLORS[(k * 2) % NOTE_COLORS.length];
-      t.style.transform = `rotate(${((h % 7) - 3) * 1.1}deg) translateY(${(h >> 3) % 7 - 3}px)`;
-      t.innerHTML = `<span class="note-pin">${pinSvg(PIN_COLORS[(k + 3) % PIN_COLORS.length], 16)}</span>
-        <span class="sn-ico${ico.classList.contains('q') ? ' q' : ''}">${ico.innerHTML}</span><span class="sn-lbl${lbl.textContent.length > 20 && !/Golden Goose/.test(lbl.textContent) ? ' long' : ''}${/Golden Goose/.test(lbl.textContent) ? ' gg-big' : ''}">${/What is the Golden Goose/.test(lbl.textContent) ? '<small class="gg-q">What&nbsp;is&nbsp;the</small><br>Golden<br>Goose' : lbl.innerHTML}</span>`;
-      t.addEventListener('click', ()=>{
-        openSheet(`<div class="sh-title"><div class="n">${ico.classList.contains('q') ? '❓' : ico.innerHTML} ${lbl.innerHTML}</div></div>
+      const title = lbl.textContent.replace(/\u2011/g, '-').trim();
+      const k = KEY.find(x => title.startsWith(x[0])) || [title, '#FFFDF8', '#D6CCB4', []];
+      const icon = ico.classList.contains('q') ? '❓' : ico.innerHTML;
+      const c = document.createElement('button');
+      c.type = 'button'; c.className = 'gg-card';
+      c.style.setProperty('--cb', k[1]); c.style.setProperty('--ce', k[2]);
+      c.innerHTML = `<b><span class="gi">${icon}</span><span>${{'What is the Golden Goose':'What it is','Monthly income':'Monthly income','Close the whole trade':'Close the trade'}[k[0]] || lbl.innerHTML}</span></b>
+        <ul>${k[3].map(x => `<li>${x}</li>`).join('')}</ul>
+        <span class="gg-caret" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7 H20 L12 19 Z" fill="#16A34A" stroke="#0F6B33" stroke-width="1.5" stroke-linejoin="round"/></svg></span>`;
+      c.addEventListener('click', ()=>{
+        openSheet(`<div class="sh-title"><div class="n">${icon} ${lbl.innerHTML}</div></div>
           <div class="gg-sheet">${pn.querySelector('.acc-bd').innerHTML}</div>`);
       });
-      grid.appendChild(t);
+      grid.appendChild(c);
       pn.hidden = true;
     });
     panels[0].parentNode.insertBefore(grid, panels[0]);
@@ -4079,6 +4244,7 @@
      ===================================================================== */
   let toastTimer = null;
   function toast(emoji, title, sub){
+    return;   // pop-up banners turned off everywhere
     $('toast').querySelector('.e').textContent = emoji;
     $('toast-title').textContent = title; $('toast-sub').textContent = sub || '';
     $('toast').classList.add('show');
