@@ -729,7 +729,7 @@
     background-image:radial-gradient(rgba(0,0,0,0.12) 1px, transparent 1.5px), radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1.5px);
     background-size:7px 7px, 11px 11px; box-shadow:inset 0 0 18px rgba(0,0,0,0.35), 0 6px 16px rgba(0,0,0,0.3); margin-bottom:12px; }
 
-  .set-note{ position:relative; min-width:0; width:78px; height:78px; padding:12px 3px 5px; border:none; cursor:pointer; text-align:center;
+  .set-note{ position:relative; min-width:0; width:92px; height:92px; padding:13px 3px 5px; border:none; cursor:pointer; text-align:center;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; box-shadow:2px 4px 6px rgba(0,0,0,0.35);
     background-image:linear-gradient(180deg, rgba(255,255,255,0.3), rgba(0,0,0,0.03)) !important; }
   .set-note:active{ filter:brightness(0.95); }
@@ -746,12 +746,23 @@
   #set-slot .acc-bd{ display:block !important; margin:10px 0 0; padding:0; border:none; box-shadow:none; background:none; animation:none; }
   /* a lone note on the last row sits in the middle; two on the last row sit centered as a pair */
   .set-board .set-note:last-child:nth-child(3n+1){ grid-column:2; }
-  .set-board{ grid-template-columns:repeat(6, 39px) !important; }
+  .set-board{ grid-template-columns:repeat(6, 46px) !important; }
   .set-board .set-note{ grid-column:span 2; justify-self:center; }
   .set-board .set-note:last-child:nth-child(3n+1){ grid-column:3 / span 2; }
   .set-board .set-note:nth-last-child(2):nth-child(3n+1){ grid-column:2 / span 2; }
-  .set-board .sn-ico{ font-size:20px; } .set-board .sn-ico svg.pin-ico{ width:15px !important; height:20px !important; }
-  .set-board .sn-lbl{ font-size:14px !important; line-height:1; }
+  .set-board .sn-ico{ font-size:22px; } .set-board .sn-ico svg.pin-ico{ width:15px !important; height:20px !important; }
+  .set-board .sn-lbl{ font-family:'Baloo 2',sans-serif !important; font-weight:700 !important; color:#1F2F35;
+    font-size:18px !important; line-height:1; display:block; width:100%; word-break:normal; overflow-wrap:normal; }
+  /* the note's own icon is its pin (no $ pins on Settings) */
+  .set-board .set-note .note-pin{ display:none !important; }
+  .set-board .set-note{ padding-top:18px; }
+  .set-board .set-note .sn-ico{ position:absolute; top:-16px; left:50%; transform:translateX(-50%); z-index:2;
+    width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; line-height:1;
+    background:radial-gradient(circle at 35% 28%, #FFFFFF 0%, #F1F5F9 55%, #CBD5E1 100%); border:1px solid rgba(0,0,0,0.25);
+    box-shadow:0 3px 0 rgba(0,0,0,0.25), 0 4px 6px rgba(0,0,0,0.3), inset 0 1.5px 0 #fff; }
+  .set-board .set-note .sn-ico svg.pin-ico{ width:14px !important; height:19px !important; margin:0 !important; }
+  .set-board .set-note .sn-ico.q{ font-size:22px; }
+  .set-board{ row-gap:30px !important; padding-top:26px !important; }
   /* Golden Goose: key-point cards, two across; Golden rules spans the full width */
   .gg-cards{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 12px; }
   .gg-card{ display:flex; flex-direction:column; align-items:stretch; text-align:left; padding:9px 9px 8px; border-radius:15px; cursor:pointer;
@@ -776,6 +787,20 @@
   .view.scroll::-webkit-scrollbar-thumb, .sheet::-webkit-scrollbar-thumb{ background:linear-gradient(90deg,#4ADE80,#16A34A); border-radius:14px; border:4px solid rgba(0,0,0,0.25); min-height:60px; }
   .view.scroll::-webkit-scrollbar-thumb:hover, .sheet::-webkit-scrollbar-thumb:hover{ background:#22C55E; }
   .view.scroll{ scrollbar-width:auto; scrollbar-color:#22C55E rgba(0,0,0,0.25); }
+  /* Settings: regular 3D buttons, one per row */
+  .set-list{ display:flex; flex-direction:column; gap:10px; margin:0 0 12px; }
+  .set-row{ position:relative; display:flex; align-items:center; gap:9px; width:100%; padding:5px 36px 5px 8px; border-radius:15px; cursor:pointer; text-align:left;
+    background:var(--cb); border:1px solid var(--ce); color:var(--ink); font:inherit;
+    box-shadow:0 4px 0 var(--ce), 0 6px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8); transition:transform .08s, box-shadow .08s; }
+  .set-row:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--ce), 0 2px 5px rgba(0,0,0,0.2); }
+  .sr-ico{ width:24px; height:24px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; line-height:1;
+    background:radial-gradient(circle at 35% 28%, #FFFFFF 0%, #F1F5F9 55%, #CBD5E1 100%); border:1px solid rgba(0,0,0,0.2);
+    box-shadow:0 2px 0 rgba(0,0,0,0.2), inset 0 1.5px 0 #fff; }
+  .sr-ico svg.pin-ico{ width:14px !important; height:19px !important; margin:0 !important; }
+  .sr-ico.q{ font-family:'Baloo 2',sans-serif; font-weight:800; font-size:22px; color:#7A4B00; }
+  .sr-lbl{ font-size:12.5px; font-weight:800; line-height:1.15; }
+  .set-row .sr-coin{ position:absolute; top:50%; right:8px; transform:translateY(-50%); width:20px; height:20px; font-size:12.5px; border-width:1px; }
+  .set-list{ gap:8px !important; }
   .gg-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px 8px; max-width:420px; margin:0 auto 12px; }
   .gg-grid .gg-note:last-child:nth-child(3n+1){ grid-column:2; }
   #view-goose .gg-grid{ gap:30px 12px; padding:22px 4px 4px; }
@@ -1355,7 +1380,7 @@
       </div>
       <div class="panel" id="howto-panel" data-pc="#C7D2FE">
         <h3>📖 How to use this app</h3>
-        <p class="help">The 5 buttons at the bottom open the 5 pages. In Settings, tap a sticky note to open it (left to right: Trades, Next Meeting, Golden Goose, Traders, Settings). Here's what each one does.</p>
+        <p class="help">The 5 buttons at the bottom open the 5 pages. In Settings, tap a button to open it (left to right: Trades, Next Meeting, Golden Goose, Traders, Settings). Here's what each one does.</p>
         <div class="hs">
           <div class="hs-t">📟 Trades</div>
           <ul class="gg">
@@ -1451,7 +1476,7 @@
         <h3>How editing works</h3>
         <p class="help" style="margin:0;">Tap any friend's card, then <b>Manage</b> to edit, move the pin, or leave the group. Trades can be changed for 24 hours, pins and trips for 48 hours, then they lock so nothing gets changed by accident. Tap the lock button to unlock, make your change, and lock it again.</p>
       </div>
-    <div class="stamp-line" id="debug-stamp">build 2026-11-17-125</div>
+    <div class="stamp-line" id="debug-stamp">build 2026-11-18-133</div>
   </div>
 </div>
 <div id="print-area" aria-hidden="true"></div>
@@ -2363,6 +2388,7 @@
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === lit));
     if(name === 'trades') setTimeout(fitTradeLines, 0);
     if(name === 'members') setTimeout(fitNoteNames, 0);
+    if(name === 'settings') setTimeout(fitSetNotes, 0);
     if(name === 'map' && map) setTimeout(()=>{ map.invalidateSize({ pan:false }); if(!userMovedMap) fitTraders(); }, 0);
   }
   $('tabbar').addEventListener('click', e => {
@@ -2518,10 +2544,7 @@
       [0, -360, 360].forEach(shift => {
         const m = L.marker([t.lat, t.lon + shift], { icon, title:`${t.name} in ${t.city}` });
         m.bindTooltip(`${esc(t.name)} · ${tzBadge(t, true)}`, { permanent:true, direction:'top', offset:[0, 0], className:'pin-label trip-label' });
-        m.on('click', ()=>{ if(moving || addingTrip) return;
-          if(isMyTrip(t)) openMyTrip(t);
-          else if(!myPin()) askIfMyTrip(t);
-          else goToTrip(t); });
+        m.on('click', ()=>{ if(moving || addingTrip) return; openMyTrip(t); });
         m.addTo(tripsLayer);
       });
     });
@@ -3337,6 +3360,7 @@
   }
   function endAddTrip(){
     if(!addingTrip) return;
+    $('trip-bar').querySelector('.t').textContent = '✈️ Where is someone traveling?';
     if(addingTrip.marker) addingTrip.marker.remove();
     addingTrip = null;
     $('trip-bar').classList.remove('show');
@@ -3511,19 +3535,19 @@
   function travelNames(){
     return [...new Set(pins.map(p => String(p.name || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   }
-  function openTripWizard(){
+  function openTripWizard(forName, forMode){
     if(offline()){ toast('✈️', "You're offline", 'Adding a trip needs an internet connection.'); return; }
     if(moving) cancelMove();
     if(addingTrip) endAddTrip();
     const names = travelNames(), mine = pins.find(p => isMine(p.id));
     let last = ''; try{ last = localStorage.getItem(NAME_KEY) || ''; }catch(e){}
-    const pick = mine ? mine.name : (last && names.includes(last) ? last : '');
-    tw = { place:null, hits:[], mode:'fly' };
+    const pick = forName || (mine ? mine.name : (last && names.includes(last) ? last : ''));
+    tw = { place:null, hits:[], mode: forMode || 'fly' };
     openSheet(`
       <div class="sh-title"><div class="n">✈️ I'm traveling</div><div class="w">Let the group know where you are. A new trip replaces your old one.</div></div>
       <div class="tw">
         <div class="tw-step"><i>1</i>Who is traveling?</div>
-        <select class="inp" id="tw-who">${pick ? '' : '<option value="">Choose your name…</option>'}${names.map(n => `<option ${n === pick ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select>
+        <select class="inp" id="tw-who">${pick ? '' : '<option value="">Choose your name…</option>'}${names.map(n => `<option ${n === pick ? 'selected' : ''}>${esc(n)}</option>`).join('')}${forName && !names.includes(forName) ? `<option selected>${esc(forName)}</option>` : ''}</select>
         <div class="tw-step"><i>2</i>How are you traveling?</div>
         <div class="tw-mode" id="tw-mode">
           <button type="button" class="on" data-mode="fly"><span>✈️</span>Flying</button>
@@ -3546,6 +3570,8 @@
       </div>`);
     sheetBody.onclick = null;
     $('tw-gps').onclick = twUseGps;
+    $('tw-mode').querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x.dataset.mode === tw.mode));
+    $('tw-save').innerHTML = `${tripIco({ mode:tw.mode })} Save my trip`;
     $('tw-mode').onclick = e => {
       const b = e.target.closest('[data-mode]'); if(!b) return;
       tw.mode = b.dataset.mode;
@@ -3630,32 +3656,48 @@
     const locked = isLocked(t);
     openSheet(`
       <div class="sh-head"><span class="pin-badge">${pinSvg(tripColor(t), 30)}</span>
-        <div class="sh-title"><div class="n">${tripIco(t)} You're in ${esc(t.city)}</div>
+        <div class="sh-title"><div class="n">${tripIco(t)} ${isMyTrip(t) ? "You're" : esc(t.name) + ' is'} in ${esc(t.city)}</div>
         <div class="w">${flagEmoji(t.cc)} ${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''} · ${esc(tripWord(t))}</div></div></div>
       ${locked ? `<div class="lock-row" style="margin-top:12px"><div class="txt">🔒 This trip is more than 48 hours old. Unlock it to change it.</div></div>
         <div class="mg-list" style="margin-top:8px"><button class="btn dark big" data-mt2="unlock">${ICON.unlock}Unlock to change it</button></div>` : `
       <div class="mg-list" style="margin-top:14px">
-        <button class="btn bull big" data-mt2="home">🏡 I'm going back home</button>
-        <button class="btn dark big" data-mt2="next">✈️ 🚢 🚗 🚐 I'm traveling to…</button>
+        <button class="btn big" data-mt2="move">🗺️ Move the pin</button>
+        <button class="btn dark big" data-mt2="next">✈️ 🚢 🚗 🚐 ${isMyTrip(t) ? "I'm traveling" : 'Traveling'} to…</button>
+        <button class="btn bull big" data-mt2="home">🏡 ${isMyTrip(t) ? "I'm going" : 'Send ' + esc(t.name)} back home</button>
       </div>`}
       <div class="status" id="sheet-status"></div>`);
     sheetBody.onclick = async e => {
       const b = e.target.closest('[data-mt2]'); if(!b || b.disabled) return;
       const act = b.dataset.mt2;
       if(act === 'unlock'){ unlocked.add(t.id); openMyTrip(t); return; }
-      if(act === 'next'){ openTripWizard(); return; }
+      if(act === 'next'){ openTripWizard(t.name, t.mode); return; }
+      if(act === 'move'){ closeSheet(); startMoveTrip(t); return; }
       if(act === 'home'){
         if(offline()) return sheetMsg("You're offline — this needs an internet connection.", 'error');
         b.disabled = true; sheetMsg('Welcoming you home…');
         const latest = await loadTrips(); if(latest.ok) trips = latest.data;
-        trips = trips.filter(x => x.id !== t.id && !(x.name === t.name && isMyTrip(x)));
+        trips = trips.filter(x => x.id !== t.id);
         const ok = await saveTrips(trips);
         closeSheet(); renderAll();
-        const me = myPin();
-        if(me){ showBack(true); setTimeout(()=> focusPin(me.id), 60); }
+        const home = pins.find(p => String(p.name || '').trim().toLowerCase() === String(t.name || '').trim().toLowerCase());
+        if(home){ showBack(true); setTimeout(()=> focusPin(home.id), 60); }
         toast('🏡', 'Welcome home!', ok ? 'Your trip is off the map.' : "Removed here, but couldn't reach the group yet.");
       }
     };
+  }
+  function startMoveTrip(t){
+    startAddTrip();
+    if(!addingTrip) return;
+    addingTrip.replace = t;
+    const sel = $('trip-who');
+    if(![...sel.options].some(o => o.value === t.name)){ const o = document.createElement('option'); o.textContent = t.name; sel.insertBefore(o, sel.firstChild); }
+    sel.value = t.name;
+    setTripMarker(L.latLng(t.lat, t.lon));
+    showTripSpot(t.lat, nearLon(t.lon), 10);
+    addingTrip.place = { lat:t.lat, lon:t.lon, city:t.city, country:t.country, cc:t.cc, approx:!!t.approx };
+    $('trip-place').innerHTML = `${pinIco()}${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''} ${flagEmoji(t.cc)} &mdash; drag the pin or tap the map`;
+    $('trip-save').disabled = false;
+    $('trip-bar').querySelector('.t').textContent = `🗺️ Move ${t.name}'s pin`;
   }
   async function twSave(){
     if(!tw || !tw.place) return;
@@ -3685,8 +3727,11 @@
     $('trip-save').disabled = true;
     const pl = addingTrip.place;
     const latest = await loadTrips(); if(latest.ok) trips = latest.data;
+    const old = addingTrip.replace;
     const trip = { id:'v_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
-      name, city:pl.city, country:pl.country, cc:pl.cc, lat:pl.lat, lon:pl.lon, approx:!!pl.approx, mode:(tw && tw.mode) || 'fly', ts:Date.now() };
+      name, city:pl.city, country:pl.country, cc:pl.cc, lat:pl.lat, lon:pl.lon, approx:!!pl.approx,
+      mode:(old && old.mode) || (tw && tw.mode) || 'fly', ts:Date.now() };
+    if(old){ trip.id = old.id; trips = trips.filter(x => x.id !== old.id); }
     tw = null;
     trips.push(trip); addMine(trip.id);
     const ok = await saveTrips(trips);
@@ -3985,7 +4030,35 @@
       pn.hidden = true;
     });
     panels[0].parentNode.insertBefore(board, panels[0]);
+    // Regular 3D buttons (same look as the rest of the app) instead of the sticky-note board.
+    const SHADES = [['#FEF9C3','#E2CD6E'],['#FBF3B4','#D9C661'],['#F1F5B7','#CBD271'],['#E5F4BC','#B5CF73'],['#D8F1C6','#9FCC80'],['#CDEDD0','#8CC79A'],['#BFE6CB','#76BB8C']];
+    const list = document.createElement('div'); list.className = 'set-list';
+    panels.forEach((pn, i) => {
+      const ico = pn.querySelector('.acc-ico'), lbl = pn.querySelector('.acc-lbl > span:last-child');
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'set-row';
+      const sh = SHADES[i % SHADES.length]; b.style.setProperty('--cb', sh[0]); b.style.setProperty('--ce', sh[1]);
+      b.innerHTML = `<span class="sr-ico${ico.classList.contains('q') ? ' q' : ''}">${ico.innerHTML}</span><span class="sr-lbl">${lbl.innerHTML}</span>
+        <span class="acc-coin sr-coin" aria-hidden="true">$</span>`;
+      b.addEventListener('click', ()=> openSettingsNote(pn));
+      list.appendChild(b);
+    });
+    board.style.display = 'none';
+    board.parentNode.insertBefore(list, board);
   })();
+
+  // Settings notes: make each label as big as fits on its note (whole words, no spilling).
+  function fitSetNotes(){
+    document.querySelectorAll('.set-board .set-note').forEach(n => {
+      const l = n.querySelector('.sn-lbl'); if(!l || !n.offsetWidth) return;
+      l.style.whiteSpace = 'normal';
+      let f = 16; l.style.setProperty('font-size', f + 'px', 'important');
+      const room = () => n.scrollHeight <= n.clientHeight + 0.5 && l.scrollWidth <= l.clientWidth + 0.5 &&
+        [...l.querySelectorAll('*')].every(x => x.scrollWidth <= l.clientWidth + 0.5);
+      while(!room() && f > 13){ f -= 0.5; l.style.setProperty('font-size', f + 'px', 'important'); }
+    });
+  }
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ if(currentView === 'settings') fitSetNotes(); });
+  window.addEventListener('resize', ()=> setTimeout(()=>{ if(currentView === 'settings') fitSetNotes(); }, 100));
 
   // Golden Goose: colored cards with the key points; tap a card for the full rules in a pop-up.
   (function(){
