@@ -480,6 +480,18 @@
   .trade-stats .w{ color:#0E7A52; } .trade-stats .l{ color:#B4232A; }
 
   /* trades: drop-down add box + symbol buttons */
+  #trade-copy-all[hidden]{ display:none !important; }
+  /* Two lined-up columns: [Add new Trade | Symbol] over [Sort: Ticker Date | Year  Open/Closed] */
+  .trade-tools{ display:grid !important; grid-template-columns:47% 1fr; gap:8px !important; }
+  .trade-tools #trade-drop{ width:100%; justify-content:center; height:30px; padding:0 8px !important; font-size:13px !important; border-radius:20px !important; }
+  .trade-tools .search input{ height:30px; padding-top:0 !important; padding-bottom:0 !important; font-size:13px !important; border-radius:20px !important; }
+  .trade-tools .search svg{ width:14px !important; height:14px !important; }
+  .tr-sort{ display:grid !important; grid-template-columns:47% 1fr; gap:8px !important; }
+  .tr-sort .ts-l, .tr-sort .ts-r{ display:flex; align-items:center; gap:5px; min-width:0; }
+  .tr-sort .ts-l button{ flex:1 1 0 !important; width:auto !important; min-width:0; }
+  .tr-sort .ts-r .yr-btn{ flex:0 0 64px !important; width:64px !important; }
+  .tr-sort .ts-r button.wide{ flex:1 1 0 !important; min-width:0; }
+  .tr-sort button, .tr-sort .yr-btn{ height:30px; display:inline-flex; align-items:center; justify-content:center; }
   .trade-tools #trade-drop{ padding:8px 12px; font-size:14px; border-radius:10px; white-space:nowrap; background:var(--bull); border-color:var(--bull); color:#fff; }
   #trade-drop .caret{ display:inline-block; transition:transform .2s; font-size:11px; }
   #trade-drop.open .caret{ transform:rotate(180deg); }
@@ -792,6 +804,12 @@
   .set-row{ position:relative; display:flex; align-items:center; gap:9px; width:100%; padding:5px 36px 5px 8px; border-radius:15px; cursor:pointer; text-align:left;
     background:var(--cb); border:1px solid var(--ce); color:var(--ink); font:inherit;
     box-shadow:0 4px 0 var(--ce), 0 6px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8); transition:transform .08s, box-shadow .08s; }
+  a.set-row{ text-decoration:none; }
+  .od-link{ margin-top:12px; padding:10px 12px; border-radius:12px; background:#F3EEE2; border:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace; font-size:12px; line-height:1.4; color:var(--ink); word-break:break-all; user-select:all; -webkit-user-select:all; }
+  .mp-bin{ flex-shrink:0; padding:0 12px !important; font-size:18px !important; }
+  .mp-del{ margin-top:18px; padding-top:12px; border-top:1px dashed var(--line); }
+  .mp-del-h{ font-family:'Baloo 2',sans-serif; font-weight:800; font-size:18px; margin-bottom:4px; }
   .set-row:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--ce), 0 2px 5px rgba(0,0,0,0.2); }
   .sr-ico{ width:24px; height:24px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; line-height:1;
     background:radial-gradient(circle at 35% 28%, #FFFFFF 0%, #F1F5F9 55%, #CBD5E1 100%); border:1px solid rgba(0,0,0,0.2);
@@ -1190,12 +1208,12 @@
         <span class="count" id="trade-count"></span>
       </div>
       <div class="trade-tools">
-        <button class="btn bull" id="trade-drop" aria-expanded="false">＋ Add <span class="caret">▾</span></button>
+        <button class="btn bull" id="trade-drop" aria-expanded="false">＋ Add new Trade <span class="caret">▾</span></button>
         <div class="search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           <input class="inp" id="trade-search" type="search" placeholder="Symbol" autocomplete="off">
         </div>
-        <button class="btn" id="trade-copy-all">Copy all</button>
+        <button class="btn" id="trade-copy-all" hidden>Copy all</button>
       </div>
       <div class="panel trade-panel" id="trade-drop-panel" hidden>
         <button type="button" class="sheet-x trade-x" id="trade-x" aria-label="Close" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7 H20 L12 19 Z" fill="#16A34A" stroke="#0F6B33" stroke-width="1.5" stroke-linejoin="round"/></svg></button>
@@ -1211,11 +1229,11 @@
         </form>
       </div>
       <div class="tr-sort" id="tr-sort" role="group" aria-label="Sort trades">
-        <span class="lbl">Sort:</span>
-        <button type="button" data-sort="ticker">Ticker</button>
-        <button type="button" data-sort="date" title="Tap again to flip newest / oldest">Date<span class="dir" id="sort-dir"></span></button>
-        <label class="yr-btn" title="Show one year"><select id="tr-year" aria-label="Year"></select></label>
-        <button type="button" data-sort="status" class="wide">🟢 Open / 🔴 <span class="red">Closed</span></button>
+        <div class="ts-l"><span class="lbl">Sort:</span>
+          <button type="button" data-sort="ticker">Ticker</button>
+          <button type="button" data-sort="date" title="Tap again to flip newest / oldest">Date<span class="dir" id="sort-dir"></span></button></div>
+        <div class="ts-r"><label class="yr-btn" title="Show one year"><select id="tr-year" aria-label="Year"></select></label>
+          <button type="button" data-sort="status" class="wide">🟢 Open / 🔴 <span class="red">Closed</span></button></div>
       </div>
       <div class="trade-list" id="trade-list"></div>
       <div class="foot"><span class="edu">For education only &mdash; not financial advice.</span><span class="thor">&copy; 2026 Thor</span></div>
@@ -1352,7 +1370,7 @@
       </div>
       <div class="panel" id="delpin-panel" data-pc="#FECACA">
         <h3>🗑️ Delete a pin</h3>
-        <p class="help">Put a pin in the wrong place? Find it below and tap <b>Delete</b>. The newest pins are at the top.</p>
+        
         <div id="pin-delete-list"></div>
       </div>
       <div class="panel lock-panel">
@@ -1384,8 +1402,8 @@
         <div class="hs">
           <div class="hs-t">📟 Trades</div>
           <ul class="gg">
-            <li><b>＋ Add</b> &rarr; paste one or more thinkorswim orders (one per line), pick the date, add a note, tap <b>Add</b>.</li>
-            <li><b>Copy</b> puts a trade back on your clipboard, ready to paste into thinkorswim. <b>Copy all</b> copies the whole list.</li>
+            <li><b>＋ Add new Trade</b> &rarr; paste one or more thinkorswim orders (one per line), pick the date, add a note, tap <b>Add</b>.</li>
+            <li><b>Copy</b> puts a trade back on your clipboard, ready to paste into thinkorswim.</li>
             <li>Type a symbol in the search box to find a trade.</li>
             <li><b>Sort:</b> Ticker (A&ndash;Z), Date (tap again to flip newest &darr; / oldest &uarr;), the <b>year</b> button (2026 onward, or All), or 🟢 Open / 🔴 Closed.</li>
             <li>Tap <b>OPEN</b> to close a trade; it turns red <b>CLOSED</b>. Tap a trade to edit, reopen or delete it.</li>
@@ -1429,8 +1447,9 @@
           <ul class="gg">
             <li><b>📱 Add app to your phone</b> &mdash; put the app on your Home Screen.</li>
             <li><b>My pin</b> &mdash; join the map: type your name, tap <b>I'm home</b> (or type your ZIP). Move or change it later here.</li>
-            <li><b>🗑️ Delete a pin</b> &mdash; remove a pin put in the wrong place.</li>
+            <li><b>🗑️ Delete a pin</b> (inside <b>My pin</b>, at the bottom) &mdash; remove your own pin.</li>
             <li><b>✈️ Trips</b> &mdash; tap <b>Back home</b> when someone returns. <b>🖨️ Print trades</b> &mdash; print or save as PDF.</li>
+            <li><b>☁️ Mo's Friends and Family OneDrive</b> &mdash; opens the group's shared files.</li>
           </ul>
         </div>
         <div class="hs">
@@ -1476,7 +1495,7 @@
         <h3>How editing works</h3>
         <p class="help" style="margin:0;">Tap any friend's card, then <b>Manage</b> to edit, move the pin, or leave the group. Trades can be changed for 24 hours, pins and trips for 48 hours, then they lock so nothing gets changed by accident. Tap the lock button to unlock, make your change, and lock it again.</p>
       </div>
-    <div class="stamp-line" id="debug-stamp">build 2026-11-18-133</div>
+    <div class="stamp-line" id="debug-stamp">build 2026-11-20-139</div>
   </div>
 </div>
 <div id="print-area" aria-hidden="true"></div>
@@ -2227,6 +2246,7 @@
   }
   // Keep every clock on screen current.
   setInterval(()=> document.querySelectorAll('.tz[data-tz]').forEach(el => {
+    if(el.dataset.plain === '1'){ try{ el.textContent = new Date().toLocaleTimeString('en-US', { timeZone:el.dataset.tz, hour:'numeric', minute:'2-digit' }); }catch(e){} return; }
     el.textContent = tzText(el.dataset.tz, el.dataset.compact === '1');
   }), 30000);
 
@@ -3755,7 +3775,7 @@
         const when = t.ts ? new Date(t.ts).toLocaleDateString(undefined, { month:'short', day:'numeric' }) : '';
         return `<button class="tv-row" data-trip="${esc(t.id)}">
           <span class="pin-badge">${pinSvg(tripColor(t), 26)}</span>
-          <span class="tv-tx"><b>${tripIco(t)} ${esc(t.name)}${t.mode && t.mode !== 'fly' ? ` <em class="tv-mode">${tripWord(t)}</em>` : ''}</b><span>${flagEmoji(t.cc)} ${esc(t.city)}${t.country ? ', ' + esc(t.country) : ''}${when ? ' · since ' + esc(when) : ''}</span><span class="tv-time">${tzBadge(t)}</span></span>
+          <span class="tv-tx"><b>${tripIco(t)} ${esc(t.name)}</b><span class="tv-time">🕐 <span class="tz" data-tz="${esc(tzForTrip(t))}" data-plain="1">${esc(new Date().toLocaleTimeString('en-US', { timeZone:tzForTrip(t), hour:'numeric', minute:'2-digit' }))}</span></span></span>
           <span class="tv-go">See ›</span></button>`;
       }).join('')}</div>
       ${list.length > 1 ? '<button class="btn block" data-trip-all>🌍 Show everyone traveling</button>' : ''}`);
@@ -3867,7 +3887,8 @@
         <div class="mp-step" style="margin-top:0">Already on the map?</div>
         <p class="help" style="margin-bottom:0">Pick your name so you can fix your pin from this phone.</p>
         <div class="mp-zip"><select class="inp" id="mp-claim"><option value="">Choose your name…</option>${others.map(p => `<option value="${esc(p.id)}">${esc(p.name)}${p.city ? ' — ' + esc(p.city) : ''}</option>`).join('')}</select>
-        <button class="btn" data-mp="claim">That's me</button></div></div>` : ''}`;
+        <button class="btn" data-mp="claim">That's me</button>
+        <button class="btn bear mp-bin" data-mp="delclaim" title="Delete this pin" aria-label="Delete this pin">🗑️</button></div></div>` : ''}`;
   }
 
   function getPosition(){
@@ -4033,7 +4054,15 @@
     // Regular 3D buttons (same look as the rest of the app) instead of the sticky-note board.
     const SHADES = [['#FEF9C3','#E2CD6E'],['#FBF3B4','#D9C661'],['#F1F5B7','#CBD271'],['#E5F4BC','#B5CF73'],['#D8F1C6','#9FCC80'],['#CDEDD0','#8CC79A'],['#BFE6CB','#76BB8C']];
     const list = document.createElement('div'); list.className = 'set-list';
-    panels.forEach((pn, i) => {
+    // "Delete a pin" now lives inside "My pin" (below your own pin), not as its own button.
+    const delPn = $('delpin-panel'), myPn = $('mypin-panel');
+    if(delPn && myPn){
+      const sec = document.createElement('div'); sec.className = 'mp-del';
+      sec.innerHTML = '<div class="mp-del-h">🗑️ Delete a pin</div>';
+      [...delPn.querySelector('.acc-bd').childNodes].forEach(n => sec.appendChild(n));
+      myPn.querySelector('.acc-bd').appendChild(sec);
+    }
+    panels.filter(pn => pn !== delPn).forEach((pn, i) => {
       const ico = pn.querySelector('.acc-ico'), lbl = pn.querySelector('.acc-lbl > span:last-child');
       const b = document.createElement('button'); b.type = 'button'; b.className = 'set-row';
       const sh = SHADES[i % SHADES.length]; b.style.setProperty('--cb', sh[0]); b.style.setProperty('--ce', sh[1]);
@@ -4043,6 +4072,31 @@
       list.appendChild(b);
     });
     board.style.display = 'none';
+    // Link button: the group's shared OneDrive folder (opens in a new tab / the OneDrive app).
+    const OD_URL = 'https://onedrive.live.com/shared?id=%2Fpersonal%2F04a3c3b01f9df583%2FDocuments%2FFriend%20n%20Family&listurl=%2Fpersonal%2F04a3c3b01f9df583%2FDocuments';
+    const od = document.createElement('button'); od.type = 'button';
+    od.className = 'set-row';
+    od.addEventListener('click', ()=>{
+      openSheet(`<div class="sh-title"><div class="n">☁️ Mo's Friends and Family OneDrive</div><div class="w">The link to the group's shared folder.</div></div>
+        <div class="od-link" id="od-link">${esc(OD_URL)}</div>
+        <div class="mg-list" style="margin-top:12px"><button class="btn bull big" id="od-copy">📋 Copy link</button></div>
+        <div class="status" id="sheet-status"></div>`);
+      $('od-copy').onclick = async ()=>{
+        const ok = await copyText(OD_URL);
+        sheetMsg(ok ? 'Link copied — paste it in your browser or a message.' : 'Press and hold the link above to copy it.', ok ? 'ok' : 'error');
+      };
+    });
+    od.style.setProperty('--cb', '#B3DEC2'); od.style.setProperty('--ce', '#6AAE82');
+    od.innerHTML = `<span class="sr-ico">☁️</span><span class="sr-lbl">Mo's Friends and Family OneDrive</span><span class="acc-coin sr-coin" aria-hidden="true">$</span>`;
+    list.appendChild(od);
+    // Button order, then re-shade yellow → green in that order.
+    const ORDER = ['How to use this app', 'Add app to your phone', "Mo's Friends and Family OneDrive", 'Print trades', 'My pin', 'Trips', 'Editing lock'];
+    const SH8 = [['#FEF9C3','#E2CD6E'],['#FBF3B4','#D9C661'],['#F1F5B7','#CBD271'],['#E5F4BC','#B5CF73'],['#D8F1C6','#9FCC80'],['#CDEDD0','#8CC79A'],['#BFE6CB','#76BB8C'],['#B3DEC2','#6AAE82']];
+    const rank = el => { const t = el.querySelector('.sr-lbl').textContent.trim(); const i = ORDER.indexOf(t); return i < 0 ? 99 : i; };
+    [...list.children].sort((a, b) => rank(a) - rank(b)).forEach((el, i) => {
+      list.appendChild(el); const sh = SH8[Math.min(i, SH8.length - 1)];
+      el.style.setProperty('--cb', sh[0]); el.style.setProperty('--ce', sh[1]);
+    });
     board.parentNode.insertBefore(list, board);
   })();
 
@@ -4099,8 +4153,10 @@
   // Settings → Delete a pin: every pin, newest first, each with a clear Delete button.
   function renderPinDelete(){
     const el = $('pin-delete-list'); if(!el) return;
-    if(!pins.length){ el.innerHTML = '<p class="help" style="margin:0">There are no pins on the map yet.</p>'; return; }
-    el.innerHTML = [...pins].sort((a,b)=> (b.ts||0) - (a.ts||0)).map(p => {
+    // Only your own pin(s) can be deleted here.
+    const mine = pins.filter(p => isMine(p.id));
+    if(!mine.length){ el.innerHTML = '<p class="help" style="margin:0">Pick your name above (Already on the map?) and tap 🗑️ next to it.</p>'; return; }
+    el.innerHTML = '<p class="help" style="margin:0 0 4px">Want to remove your pin from the map? Tap <b>🗑️ Delete</b>.</p>' + [...mine].sort((a,b)=> (b.ts||0) - (a.ts||0)).map(p => {
       const added = p.ts ? new Date(p.ts).toLocaleDateString(undefined, { month:'short', day:'numeric' }) : '';
       const info = [placeText(p), p.zip, added ? 'added ' + added : ''].filter(Boolean).join(' · ');
       return `<div class="dl-row">
@@ -4112,11 +4168,22 @@
       </div>`;
     }).join('');
   }
+  async function deleteMyPin(p, btn){
+    if(!p) return;
+    if(offline()){ mpMsg("You're offline — deleting a pin needs an internet connection.", 'error'); return; }
+    if(!confirm(`Delete ${p.name}'s pin in ${placeText(p)}?\n\nThis can't be undone.`)) return;
+    if(btn) btn.disabled = true;
+    const latest = await loadPinsOrKeep(); if(latest.ok) pins = latest.data;
+    pins = pins.filter(x => x.id !== p.id);
+    removeMine(p.id);
+    await savePins(pins);
+    renderAll(); renderMyPin(true); renderPinDelete();
+  }
   $('pin-delete-list').addEventListener('click', async e => {
     const u = e.target.closest('[data-unl]');
     if(u){ unlocked.add(u.dataset.unl); renderPinDelete(); renderMyPin(true); return; }
     const d = e.target.closest('[data-del]'); if(!d) return;
-    const p = pins.find(x => x.id === d.dataset.del); if(!p) return;
+    const p = pins.find(x => x.id === d.dataset.del); if(!p || !isMine(p.id)) return;
     if(offline()){ toast('✈️', "You're offline", 'Deleting a pin needs an internet connection.'); return; }
     if(!confirm(`Delete ${p.name}'s pin in ${placeText(p)}?\n\nThis can't be undone.`)) return;
     d.disabled = true;
@@ -4143,6 +4210,11 @@
       case 'travel': openTripWizard(); return;
       case 'zipopen': mpZipOpen = true; renderMyPin(true); setTimeout(()=> $('mp-zip') && $('mp-zip').focus(), 50); return;
       case 'zipgo': return mpZip();
+      case 'delclaim': {
+        const id = $('mp-claim').value;
+        if(!id) return mpMsg('Choose your name from the list first.', 'error');
+        return deleteMyPin(pins.find(x => x.id === id), b);
+      }
       case 'claim': {
         const id = $('mp-claim').value;
         if(!id) return mpMsg('Choose your name from the list first.', 'error');
